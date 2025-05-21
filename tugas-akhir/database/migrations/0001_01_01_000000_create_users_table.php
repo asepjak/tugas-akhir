@@ -13,12 +13,22 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            // Kolom bawaan Laravel user
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['karyawan', 'admin', 'pimpinan'])->default('karyawan');
             $table->rememberToken();
+
+            // Kolom tambahan profil
+            $table->string('nama')->nullable();
+            $table->string('alamat')->nullable();
+            $table->string('no_hp')->nullable();
+            $table->string('jabatan')->nullable();
+            $table->string('status')->nullable();
+            $table->string('username')->unique()->nullable();
+
             $table->timestamps();
         });
 
@@ -43,8 +53,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
     }
 };
