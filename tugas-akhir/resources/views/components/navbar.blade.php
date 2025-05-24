@@ -6,9 +6,9 @@
         </div>
         <ul class="nav">
             <li class="nav-item"><a class="nav-link" href="{{ route('dashboard') }}">Home</a></li>
-            {{-- <li class="nav-item"><a class="nav-link" href="{{ route('absensi.index') }}">Absensi</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ route('perizinan.index') }}">Perizinan</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ route('riwayat.absen') }}">Riwayat Absensi</a></li> --}}
+            {{-- <li class="nav-item"><a class="nav-link" href="{{ route('absensi.index') }}">Absensi</a></li> --}}
+            <li class="nav-item"><a class="nav-link" href="{{ route('karyawan.permission.index') }}">Perizinan</a></li>
+            {{-- <li class="nav-item"><a class="nav-link" href="{{ route('riwayat.absen') }}">Riwayat Absensi</a></li> --}}
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">Pengaturan</a>
                 <ul class="dropdown-menu dropdown-menu-end">

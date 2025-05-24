@@ -1,0 +1,156 @@
+/* dashboard-karyawan.css - Transformer Theme */
+
+/* Container utama */
+.container.py-5 {
+    max-width: 900px;
+    background-color: #0b0c10;
+    color: #c5c6c7;
+    border-radius: 10px;
+    padding: 2rem;
+}
+
+/* HEADER */
+h2.fw-bold.text-uppercase {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5rem;
+    color: #ff0000; /* Merah khas Optimus Prime */
+    letter-spacing: 3px;
+    text-shadow: 1px 1px #000;
+}
+
+/* Form filter bulan & tahun */
+form.d-flex {
+    gap: 15px;
+}
+
+.form-select,
+.form-control {
+    border-radius: 0.5rem;
+    background-color: #1f2833;
+    color: #66fcf1;
+    border: 2px solid #45a29e;
+}
+
+.form-select:focus,
+.form-control:focus {
+    border-color: #66fcf1;
+    box-shadow: 0 0 10px #66fcf1;
+    background-color: #0b0c10;
+}
+
+/* Tombol Filter */
+.btn-primary {
+    padding: 0.5rem 1.5rem;
+    font-weight: bold;
+    background-color: #ffcc00;
+    border: none;
+    color: #000;
+    transition: background-color 0.3s ease;
+    border-radius: 10px;
+}
+
+.btn-primary:hover {
+    background-color: #ffd633;
+    color: #000;
+}
+
+/* Kartu Status */
+.card {
+    background-color: #1f2833;
+    border: 2px solid #66fcf1;
+    color: #c5c6c7;
+    border-radius: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card .card-body img {
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(255, 204, 0, 0.4);
+    border-color: #ffcc00;
+}
+
+.card:hover .card-body img {
+    transform: scale(1.1);
+}
+
+.card .fw-bold {
+    font-size: 2.5rem;
+}
+
+/* Badge Status */
+.badge.bg-warning {
+    background-color: #ffcc00 !important;
+    color: #000 !important;
+}
+
+.badge.bg-success {
+    background-color: #45a29e !important;
+}
+
+.badge.bg-danger {
+    background-color: #ff0000 !important;
+}
+
+/* Table Styling */
+.table {
+    background-color: #1f2833;
+    color: #c5c6c7;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #0b0c10;
+}
+
+.table thead th {
+    background-color: #ff0000;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: 1px 1px #000;
+}
+
+.table tbody td {
+    vertical-align: middle;
+    text-align: center;
+}
+
+/* Tombol lihat surat */
+.btn-outline-primary {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
+    color: #66fcf1;
+    border: 1px solid #66fcf1;
+    border-radius: 0.5rem;
+}
+
+.btn-outline-primary:hover {
+    background-color: #66fcf1;
+    color: #0b0c10;
+}
+
+/* Alert */
+.alert-success {
+    border-radius: 0.5rem;
+    background-color: #45a29e;
+    color: #0b0c10;
+    font-weight: 600;
+}
+
+/* Fade-in animation */
+.fade-in {
+    animation: fadeIn 0.8s ease forwards;
+    opacity: 0;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
