@@ -33,6 +33,7 @@ Route::middleware(['auth', 'role:karyawan'])->prefix('karyawan')->group(function
     Route::post('/permissions', [PermissionController::class, 'store'])->name('karyawan.permission.store');
     Route::get('/absensi', [AbsensiController::class, 'index'])->name('karyawan.absensi.index');
     Route::post('/absensi', [AbsensiController::class, 'store'])->name('absensi.store');
+    Route::post('/absensi/keluar', [AbsensiController::class, 'keluar'])->name('absensi.keluar');
 });
 
 

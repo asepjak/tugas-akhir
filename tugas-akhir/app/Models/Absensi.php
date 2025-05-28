@@ -13,6 +13,7 @@ class Absensi extends Model
         'user_id',
         'tanggal',
         'jam',
+        'jam_keluar',
         'ip_address',
     ];
 

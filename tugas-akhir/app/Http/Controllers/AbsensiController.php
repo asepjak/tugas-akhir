@@ -60,6 +60,32 @@ class AbsensiController extends Controller
         return back()->with('success', 'Absensi berhasil dicatat.');
     }
 
+    public function keluar(Request $request)
+    {
+        $userId = Auth::id();
+        $today = now()->toDateString();
+
+        $absensi = Absensi::where('user_id', $userId)
+            ->whereDate('tanggal', $today)
+            ->first();
+
+        if (!$absensi) {
+            return back()->with('error', 'Anda belum melakukan absen masuk hari ini.');
+        }
+
+        if ($absensi->jam_keluar) {
+            return back()->with('error', 'Anda sudah melakukan absen keluar.');
+        }
+
+        $absensi->update([
+            'jam_keluar' => now()->toTimeString(),
+        ]);
+
+        return back()->with('success', 'Absen keluar berhasil dicatat.');
+    }
+
+
+
     /**
      * Mendapatkan daftar IP yang diizinkan berdasarkan environment
      */

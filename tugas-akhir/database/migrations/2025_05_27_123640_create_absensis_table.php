@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->date('tanggal');
             $table->time('jam');
+            $table->time('jam_keluar')->nullable(false)->change();
             $table->string('ip_address');
             $table->timestamps();
         });
