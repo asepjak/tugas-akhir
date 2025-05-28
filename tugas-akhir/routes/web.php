@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\AbsensiController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -30,7 +31,8 @@ Route::middleware(['auth', 'role:karyawan'])->prefix('karyawan')->group(function
     Route::get('/permissions', [PermissionController::class, 'index'])->name('karyawan.permission.index');
     Route::get('/permissions/create', [PermissionController::class, 'create'])->name('karyawan.permission.create');
     Route::post('/permissions', [PermissionController::class, 'store'])->name('karyawan.permission.store');
-    
+    Route::get('/absensi', [AbsensiController::class, 'index'])->name('karyawan.absensi.index');
+    Route::post('/absensi', [AbsensiController::class, 'store'])->name('absensi.store');
 });
 
 

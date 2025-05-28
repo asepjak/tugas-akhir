@@ -7,7 +7,6 @@
 
 @section('content')
 <div class="container py-5">
-
     {{-- HEADER --}}
     <div class="text-center mb-5">
         <h2 class="fw-bold text-uppercase">Status Absensi Bulan Ini</h2>
@@ -25,9 +24,7 @@
                 value="{{ $year }}"
                 class="form-control w-auto"
                 min="2000"
-                max="{{ now()->year }}"
-            >
-
+                max="{{ now()->year }}">
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-search"></i> Filter
             </button>
