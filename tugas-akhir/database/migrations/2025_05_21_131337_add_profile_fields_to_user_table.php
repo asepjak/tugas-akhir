@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('jabatan')->nullable();
             $table->string('status')->nullable();
             $table->string('username')->unique()->nullable();
+            $table->string('foto')->nullable();
         });
     }
 };

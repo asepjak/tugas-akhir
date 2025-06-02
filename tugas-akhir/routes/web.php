@@ -39,11 +39,13 @@ Route::middleware(['auth', 'role:karyawan'])->prefix('karyawan')->group(function
     Route::post('/absensi/masuk', [AbsensiController::class, 'store'])->name('absen.masuk');
     // Route untuk debugging IP (tambahan yang diperlukan)
     Route::get('/absensi/check-ip', [AbsensiController::class, 'checkIp'])->name('karyawan.absensi.check-ip');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');           // halaman profil
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
     // Development routes (hanya untuk testing)
     // Route::post('/absensi/bypass', [AbsensiController::class, 'storeBypass'])->name('absensi.bypass');
     // Route::delete('/absensi/reset', [AbsensiController::class, 'reset'])->name('absensi.reset');
 });
 
 
-Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
-Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+// web.php
