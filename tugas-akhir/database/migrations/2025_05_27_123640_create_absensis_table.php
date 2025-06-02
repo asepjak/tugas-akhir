@@ -11,14 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('absensis', function (Blueprint $table) {
+        Schema::create('absensi', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->date('tanggal');
-            $table->time('jam');
-            $table->time('jam_keluar')->nullable(false)->change();
-            $table->string('ip_address');
+            $table->time('jam'); // Jam masuk
+            $table->time('jam_keluar')->nullable(); // Jam keluar
+            $table->string('ip_address', 45); // Support IPv6
+            $table->enum('status', ['hadir', 'terlambat', 'alpha', 'izin', 'sakit'])->default('hadir');
+            $table->time('jam_terlambat')->nullable(); // Jam ketika terlambat
+            $table->string('durasi_terlambat')->nullable(); // Durasi keterlambatan (string)
+            $table->text('keterangan')->nullable(); // Keterangan tambahan
             $table->timestamps();
+
+            // Indexes untuk performa
+            $table->index(['user_id', 'tanggal']);
+            $table->index(['tanggal']);
+            $table->index(['status']);
+
+            // Unique constraint untuk mencegah double absensi per hari
+            $table->unique(['user_id', 'tanggal']);
         });
     }
 
@@ -27,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('absensis');
+        Schema::dropIfExists('absensi');
     }
 };
