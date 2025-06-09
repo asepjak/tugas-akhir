@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Models\User; // ✅ Tambahkan ini
+use App\Models\User;
 
 class ProfileController extends Controller
 {
@@ -25,40 +25,42 @@ class ProfileController extends Controller
         }
 
         $validated = $request->validate([
-            'nama' => 'required|string|max:255',
+            'nama' => 'nullable|string|max:255',
             'alamat' => 'nullable|string',
-            'email' => 'required|email|unique:users,email,'.$user->id,
+            'email' => 'nullable|email|unique:users,email,' . $user->id,
             'no_hp' => 'nullable|string|max:20',
             'jabatan' => 'nullable|string|max:255',
             'status' => 'nullable|string|max:255',
-            'username' => 'required|string|max:255|unique:users,username,'.$user->id,
+            'username' => 'nullable|string|max:255|unique:users,username,' . $user->id,
             'password' => 'nullable|string|min:6',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         // Handle file upload
         if ($request->hasFile('foto')) {
-            // Delete old photo if exists
-            if ($user->foto && Storage::exists('public/foto/'.$user->foto)) {
-                Storage::delete('public/foto/'.$user->foto);
+            if ($user->foto && Storage::exists('public/' . $user->foto)) {
+                Storage::delete('public/' . $user->foto);
             }
-
-            $filename = time().'.'.$request->foto->extension();
-            $request->foto->storeAs('public/foto', $filename);
-            $validated['foto'] = $filename; // Tambahkan ke validated data
+            $filename = $request->file('foto')->store('foto', 'public');
+            $validated['foto'] = $filename;
         }
 
-        // Update fields secara manual jika fill() masih bermasalah
-        $user->nama = $validated['nama'];
-        $user->alamat = $validated['alamat'] ?? null;
-        $user->email = $validated['email'];
-        $user->no_hp = $validated['no_hp'] ?? null;
-        $user->jabatan = $validated['jabatan'] ?? null;
-        $user->status = $validated['status'] ?? null;
-        $user->username = $validated['username'];
-        $user->foto = $validated['foto'] ?? $user->foto;
 
-        // Update password jika ada
+        // ✅ SOLUSI 1: Update field by field (paling aman)
+        if (isset($validated['nama'])) $user->nama = $validated['nama'];
+        if (isset($validated['alamat'])) $user->alamat = $validated['alamat'];
+        if (isset($validated['email'])) $user->email = $validated['email'];
+        if (isset($validated['no_hp'])) $user->no_hp = $validated['no_hp'];
+        if (isset($validated['jabatan'])) $user->jabatan = $validated['jabatan'];
+        if (isset($validated['status'])) $user->status = $validated['status'];
+        if (isset($validated['username'])) $user->username = $validated['username'];
+
+        // Update foto jika ada
+        if (isset($validated['foto'])) {
+            $user->foto = $validated['foto'];
+        }
+
+        // Update password hanya jika diisi
         if (!empty($validated['password'])) {
             $user->password = bcrypt($validated['password']);
         }
@@ -67,7 +69,7 @@ class ProfileController extends Controller
             $user->save();
             return redirect()->route('profile.edit')->with('success', 'Profil berhasil diperbarui.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Gagal memperbarui profil: '.$e->getMessage());
+            return back()->with('error', 'Gagal memperbarui profil: ' . $e->getMessage());
         }
     }
 }

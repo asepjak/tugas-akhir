@@ -149,7 +149,7 @@ class AbsensiController extends Controller
         }
 
         // Update jam keluar
-        $jamKeluar = '00:38:00';
+        $jamKeluar = Carbon::now()->format('H:i:s');
         $absensi->update([
             'jam_keluar' => $jamKeluar,
         ]);

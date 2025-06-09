@@ -7,18 +7,22 @@
         <div class="col-md-4 text-center">
             <div class="border bg-light p-5">
                 @if ($user->foto)
-                    <img id="fotoPreview" src="{{ asset('storage/' . $user->foto) }}" class="img-fluid mb-3" alt="Foto Profil">
+                    <img id="fotoPreview" src="{{ asset('storage/foto/' . $user->foto) }}" class="img-fluid mb-3" alt="Foto Profil">
                 @else
                     <img id="fotoPreview" src="{{ asset('default-profile.png') }}" class="img-fluid mb-3" alt="Foto Profil">
                 @endif
 
-                <input type="file" name="foto" id="fotoInput" class="form-control mb-3" accept="image/*" style="display:none;">
+                <!-- ✅ Hidden file input akan disubmit dengan form -->
+                <input type="file" name="foto" id="fotoInput" class="form-control mb-3" accept="image/*" style="display:none;" form="profileForm">
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('fotoInput').click()">Ambil Foto / Pilih Foto</button>
             </div>
         </div>
         <div class="col-md-8">
             @if (session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -29,14 +33,15 @@
                     </ul>
                 </div>
             @endif
-            <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
+            <!-- ✅ Tambahkan id untuk menghubungkan dengan file input -->
+            <form id="profileForm" method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="row">
                     <div class="col-md-6">
                         <label>Nama</label>
                         <input class="form-control" name="nama" value="{{ old('nama', $user->nama) }}">
                         <label class="mt-3">Alamat</label>
-                        <input class="form-control" name="alamat" value="{{ old('alamat', $user->alamat) }}">
+                        <textarea class="form-control" name="alamat">{{ old('alamat', $user->alamat) }}</textarea>
                         <label class="mt-3">Email</label>
                         <input class="form-control" name="email" value="{{ old('email', $user->email) }}">
                         <label class="mt-3">No. HP</label>
@@ -53,7 +58,7 @@
                         <input type="password" class="form-control" name="password">
                     </div>
                 </div>
-                <button class="btn btn-primary mt-4">Simpan</button>
+                <button type="submit" class="btn btn-primary mt-4">Simpan</button>
             </form>
         </div>
     </div>
