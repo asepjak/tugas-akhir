@@ -277,7 +277,7 @@
     </style>
 
     <div class="absensi-container">
-        <h1>📋 Sistem Absensi Karyawan</h1>
+        <h1>📋 Sistem Presensi Karyawan</h1>
 
         {{-- Notifikasi --}}
         @if (session('success'))
@@ -386,7 +386,7 @@
                 <form method="POST" action="{{ route('absensi.store') }}" style="display:inline;">
                     @csrf
                     <button type="submit" class="btn-absen btn-masuk">
-                        🚪 Absen Masuk
+                        🚪 Waktu Masuk
                     </button>
                 </form>
             @elseif (is_null($absenHariIni->jam_keluar))
@@ -397,7 +397,7 @@
                 <form method="POST" action="{{ route('absensi.keluar') }}" style="display:inline;">
                     @csrf
                     <button type="submit" class="btn-absen btn-keluar">
-                        🏠 Absen Keluar
+                        🏠 Waktu Pulang
                     </button>
                 </form>
             @else

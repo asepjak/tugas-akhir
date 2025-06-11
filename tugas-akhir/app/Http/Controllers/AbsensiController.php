@@ -11,7 +11,7 @@ use Carbon\Carbon;
 class AbsensiController extends Controller
 {
     // Konstanta untuk jam batas masuk
-    const JAM_BATAS_MASUK = '08:30:00';
+    const JAM_BATAS_MASUK = '08:00:00';
 
     public function index()
     {

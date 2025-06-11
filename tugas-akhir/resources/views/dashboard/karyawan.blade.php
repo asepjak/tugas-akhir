@@ -95,7 +95,7 @@
     {{-- RIWAYAT IZIN --}}
     <div class="mt-5">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold">Riwayat Perizinan</h4>
+            <h4 class="fw-bold">Riwayat Ajuan</h4>
         </div>
 
         @if (session('success'))
@@ -113,7 +113,7 @@
                         <th>Mulai</th>
                         <th>Selesai</th>
                         <th>Status</th>
-                        <th>Surat</th>
+                        <th>Lampiran</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -144,7 +144,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted">Belum ada data perizinan.</td>
+                            <td colspan="6" class="text-center text-muted">Belum ada data ajuan.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -41,7 +41,7 @@
                     </div>
 
                     <div class="col-12 text-end">
-                        <button type="submit" class="btn btn-success mt-2">Kirim Perizinan</button>
+                        <button type="submit" class="btn btn-success mt-2">Kirim Ajuan</button>
                     </div>
                 </div>
             </form>
