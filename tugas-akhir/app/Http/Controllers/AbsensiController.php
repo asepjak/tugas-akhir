@@ -70,9 +70,11 @@ class AbsensiController extends Controller
         // PERBAIKAN LOGIKA KETERLAMBATAN
         // Buat Carbon instance untuk hari yang sama
         $tanggalHariIni = $now->toDateString();
-        $jamBatasMasuk = Carbon::createFromFormat('Y-m-d H:i:s', $tanggalHariIni . ' ' . self::JAM_BATAS_MASUK);
-        $jamMasukCarbon = Carbon::createFromFormat('Y-m-d H:i:s', $tanggalHariIni . ' ' . $jamMasuk);
+        // Tentukan jam batas masuk (08:00:00) dan jam sekarang
+        $jamBatasMasuk = Carbon::createFromTimeString(self::JAM_BATAS_MASUK);
+        $jamMasukCarbon = Carbon::now();
 
+        // Hitung apakah terlambat
         $isTerlambat = $jamMasukCarbon->gt($jamBatasMasuk);
         $status = $isTerlambat ? 'terlambat' : 'hadir';
 
@@ -89,6 +91,7 @@ class AbsensiController extends Controller
                 $durasiTerlambat = "{$menit} menit";
             }
         }
+
 
         // Debug log untuk memastikan logika benar
         if (config('app.debug')) {
@@ -129,8 +132,8 @@ class AbsensiController extends Controller
         // Validasi IP Address untuk absen keluar juga
         if (!in_array($clientIp, $allowedIps)) {
             $message = app()->environment('local')
-                ? "Development mode - IP terdeteksi: {$clientIp}. IP yang diizinkan: " . implode(', ', $allowedIps)
-                : 'Anda hanya dapat absen dari jaringan kantor!';
+                ? "IP terdeteksi: {$clientIp}. IP yang diizinkan: " . implode(', ', $allowedIps)
+                : 'dan Anda hanya dapat absen dari jaringan kantor!';
 
             return back()->with('error', $message);
         }

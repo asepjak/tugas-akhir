@@ -427,15 +427,20 @@
                         $jamBatas = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $tanggal . ' ' . '08:30:00');
                         $isTerlambat = $jamMasuk->gt($jamBatas);
 
+                        $jamBatas = '08:30:00';
+
+                        $jamBatasCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $jamBatas);
+                        $jamMasukCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $item->jam);
+                        $isTerlambat = $jamMasukCarbon->gt($jamBatasCarbon);
+
                         $durasiTerlambat = 'Tepat waktu';
                         if ($isTerlambat) {
-                            $selisihMenit = $jamMasuk->diffInMinutes($jamBatas);
-                            $jam = intdiv($selisihMenit, 60);
-                            $menit = $selisihMenit % 60;
-                            if ($jam > 0) {
-                                $durasiTerlambat = "$jam jam $menit menit";
+                            $selisih = $jamMasukCarbon->diff($jamBatasCarbon);
+
+                            if ($selisih->h > 0) {
+                                $durasiTerlambat = $selisih->format('%h jam %i menit');
                             } else {
-                                $durasiTerlambat = "$menit menit";
+                                $durasiTerlambat = $selisih->format('%i menit');
                             }
                         }
 

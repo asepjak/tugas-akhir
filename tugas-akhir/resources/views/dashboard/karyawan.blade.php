@@ -3,15 +3,18 @@
 @section('title', 'Dashboard Karyawan')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/dashboard-karyawan.css') }}?v={{ time() }}">
+{{-- <link rel="stylesheet" href="{{ asset('css/dashboard-karyawan.css') }}?v={{ time() }}"> --}}
 <style>
     .status-card {
-        transition: transform 0.3s ease;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         border-radius: 15px;
+        background-color: #ffffff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
     .status-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     }
 
     .fade-in {
@@ -30,6 +33,27 @@
     .badge {
         font-size: 0.9rem;
         padding: 0.5em 0.75em;
+        border-radius: 0.5rem;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #f9f9f9;
+    }
+
+    .table-striped tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .table th {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .table td {
+        color: #495057;
+    }
+
+    .alert {
         border-radius: 0.5rem;
     }
 </style>
