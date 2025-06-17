@@ -28,22 +28,18 @@
                         <i class="fas fa-home me-1 d-lg-none"></i>Home
                     </a>
                 </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('verifikasi.index') ? 'active fw-bold text-primary' : '' }}"
-                        href="{{ route('verifikasi.index') }}">
-                        <i class="fas fa-check-circle me-1 d-lg-none"></i>Verifikasi Perizinan
-                    </a>
-                </li>
-
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('verifikasi.permissions') ? 'active fw-bold text-primary' : '' }}"
                         href="{{ route('verifikasi.permissions') }}">
                         <i class="fas fa-file-alt me-1 d-lg-none"></i>Data Izin Karyawan
                     </a>
                 </li>
-
-
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.rekap.index') ? 'active fw-bold text-primary' : '' }}"
+                        href="{{ route('admin.rekap.index') }}">
+                        <i class="fas fa-table me-1 d-lg-none"></i>Rekap Absensi
+                    </a>
+                </li>
                 <!-- Profil Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle px-2 px-lg-3 py-2" href="#" id="navbarDropdownSettings"

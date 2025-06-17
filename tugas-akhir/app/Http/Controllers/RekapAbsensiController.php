@@ -1,36 +1,46 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Models\RekapAbsensi;
 use App\Models\User;
+use App\Models\Absensi;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\RekapAbsensiExport;
 
 class RekapAbsensiController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = RekapAbsensi::with('user')->latest()->get();
-        return view('admin.rekap.index', compact('data'));
-    }
+        $bulan = $request->get('bulan', date('m'));
+        $tahun = $request->get('tahun', date('Y'));
 
-    public function create()
-    {
         $users = User::where('role', 'karyawan')->get();
-        return view('admin.rekap.create', compact('users'));
+        $data = [];
+
+        foreach ($users as $user) {
+            $absensi = Absensi::where('user_id', $user->id)
+                ->whereMonth('tanggal', $bulan)
+                ->whereYear('tanggal', $tahun)
+                ->get();
+
+            $data[] = [
+                'user' => $user,
+                'jumlah_hadir' => $absensi->where('status', 'hadir')->count(),
+                'jumlah_izin' => $absensi->where('status', 'izin')->count(),
+                'jumlah_sakit' => $absensi->where('status', 'sakit')->count(),
+                'jumlah_terlambat' => $absensi->where('status', 'terlambat')->count(),
+            ];
+        }
+
+        return view('admin.rekap.index', compact('data', 'bulan', 'tahun'));
     }
 
-    public function store(Request $request)
+    public function export(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'tanggal' => 'required|date',
-            'hari' => 'required|string',
-            'keterangan' => 'required|string',
-        ]);
+        $bulan = $request->get('bulan', date('m'));
+        $tahun = $request->get('tahun', date('Y'));
 
-        RekapAbsensi::create($request->all());
-
-        return redirect()->route('rekap.index')->with('success', 'Data rekap absensi berhasil ditambahkan.');
+        return Excel::download(new RekapAbsensiExport($bulan, $tahun), 'rekap-absensi.xlsx');
     }
 }

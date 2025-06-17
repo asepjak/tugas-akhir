@@ -53,6 +53,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::patch('/permissions/{id}/status', [VerifikasiPerizinanController::class, 'updateStatus'])->name('permissions.updateStatus');
 
 
+
     // Lihat semua data izin karyawan
     Route::get('/permissions', [VerifikasiPerizinanController::class, 'permissions'])->name('verifikasi.permissions');
 
