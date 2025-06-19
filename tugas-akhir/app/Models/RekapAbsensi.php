@@ -9,17 +9,14 @@ class RekapAbsensi extends Model
 {
     use HasFactory;
 
+    
     protected $table = 'rekap_absensi';
 
-    protected $fillable = [
-        'user_id',
-        'tanggal',
-        'hari',
-        'keterangan',
-    ];
+    protected $fillable = ['user_id', 'tanggal', 'hari', 'keterangan'];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 }
+

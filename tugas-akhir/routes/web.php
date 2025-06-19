@@ -58,7 +58,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/permissions', [VerifikasiPerizinanController::class, 'permissions'])->name('verifikasi.permissions');
 
     // Rekap Absensi
-    Route::get('/rekap', [RekapAbsensiController::class, 'index'])->name('admin.rekap.index');
-    Route::get('/rekap/create', [RekapAbsensiController::class, 'create'])->name('admin.rekap.create');
-    Route::post('/rekap', [RekapAbsensiController::class, 'store'])->name('admin.rekap.store');
+    Route::get('rekap', [RekapAbsensiController::class, 'index'])->name('admin.rekap.index');
+    Route::get('rekap/create', [RekapAbsensiController::class, 'create'])->name('admin.rekap.create');
+    Route::post('rekap/store', [RekapAbsensiController::class, 'store'])->name('admin.rekap.store');
+
+    Route::get('rekap/bulanan', [RekapAbsensiController::class, 'bulanan'])->name('admin.rekap.bulanan');
+    Route::get('/admin/rekap/export', [RekapAbsensiController::class, 'exportBulanan'])->name('admin.rekap.export');
 });
