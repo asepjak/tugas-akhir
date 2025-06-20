@@ -63,7 +63,7 @@
 <div class="container py-5 fade-in">
     {{-- HEADER --}}
     <div class="text-center mb-5">
-        <h2 class="fw-bold text-uppercase">Status Absensi Bulan Ini</h2>
+        <h2 class="fw-bold text-uppercase">Status Presensi Bulan Ini</h2>
         <form method="GET" action="{{ route('dashboard') }}" class="d-flex flex-wrap justify-content-center gap-3 mt-3">
             <select name="month" class="form-select w-auto">
                 @foreach(range(1,12) as $m)

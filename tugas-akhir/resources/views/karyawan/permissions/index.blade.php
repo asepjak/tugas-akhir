@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container py-4">
-    <h4 class="fw-bold text-uppercase text-center mb-4">Ajukan Perizinan</h4>
+    <h4 class="fw-bold text-uppercase text-center mb-4">Ajuan Karyawan</h4>
 
     @if (session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>

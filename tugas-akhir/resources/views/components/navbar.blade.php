@@ -32,12 +32,12 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link px-2 px-lg-3 py-2" href="{{ route('karyawan.absensi.index') }}">
-                        <i class="fas fa-clock me-1 d-lg-none"></i>Absensi
+                        <i class="fas fa-clock me-1 d-lg-none"></i>Presensi
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link px-2 px-lg-3 py-2" href="{{ route('karyawan.permission.index') }}">
-                        <i class="fas fa-file-alt me-1 d-lg-none"></i>Perizinan
+                        <i class="fas fa-file-alt me-1 d-lg-none"></i>Ajuan Karyawan
                     </a>
                 </li>
                 <li class="nav-item dropdown">
