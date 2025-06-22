@@ -19,7 +19,7 @@ return new class extends Migration
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai');
             $table->string('file_surat')->nullable(); // file path
-            $table->enum('status', ['Menunggu', 'Diterima', 'Ditolak'])->default('Menunggu');
+            $table->enum('status', ['Menunggu', 'Disetujui', 'Ditolak'])->default('Menunggu');
             $table->timestamps();
         });
     }

@@ -16,12 +16,10 @@
             <span class="fs-6 fs-lg-5 d-none d-sm-inline">Hai, {{ $user->nama ?? $user->name }}</span>
             <span class="fs-6 d-inline d-sm-none">{{ Str::limit($user->nama ?? $user->name, 10) }}</span>
         </div>
-
         <!-- Mobile Toggle Button -->
         <button class="navbar-toggler border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-
         <!-- Collapsible Navigation -->
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto mt-2 mt-lg-0">

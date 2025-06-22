@@ -10,7 +10,7 @@ use Carbon\Carbon;
 
 class AbsensiController extends Controller
 {
-    // Konstanta untuk jam batas masuk
+    // Jam batas masuk kantor
     const JAM_BATAS_MASUK = '08:00:00';
 
     public function index()
@@ -30,7 +30,6 @@ class AbsensiController extends Controller
         return view('karyawan.absensi.index', compact('absensi', 'absenHariIni'));
     }
 
-
     public function store(Request $request)
     {
         $allowedIps = $this->getAllowedIps();
@@ -38,27 +37,10 @@ class AbsensiController extends Controller
         $now = Carbon::now();
         $jamMasuk = $now->format('H:i:s');
 
-        // Log untuk debugging
-        if (config('app.debug')) {
-            Log::info('=== ABSENSI DEBUG ===');
-            Log::info('Environment: ' . app()->environment());
-            Log::info('Client IP: ' . $clientIp);
-            Log::info('Allowed IPs: ' . implode(', ', $allowedIps));
-            Log::info('User Agent: ' . $request->userAgent());
-            Log::info('Jam Masuk: ' . $jamMasuk);
-            Log::info('Jam Batas: ' . self::JAM_BATAS_MASUK);
-        }
-
-        // Validasi IP Address
         if (!in_array($clientIp, $allowedIps)) {
-            $message = app()->environment('local')
-                ? "Development mode - IP terdeteksi: {$clientIp}. IP yang diizinkan: " . implode(', ', $allowedIps)
-                : 'Anda hanya dapat absen dari jaringan kantor!';
-
-            return back()->with('error', $message);
+            return back()->with('error', 'Anda hanya dapat absen dari jaringan kantor.');
         }
 
-        // Cek apakah sudah absen hari ini
         $existing = Absensi::whereDate('tanggal', $now->toDateString())
             ->where('user_id', Auth::id())
             ->first();
@@ -67,43 +49,25 @@ class AbsensiController extends Controller
             return back()->with('error', 'Anda sudah absen masuk hari ini.');
         }
 
-        // PERBAIKAN LOGIKA KETERLAMBATAN
-        // Buat Carbon instance untuk hari yang sama
+        // Perhitungan keterlambatan
         $tanggalHariIni = $now->toDateString();
-        // Tentukan jam batas masuk (08:00:00) dan jam sekarang
-        $jamBatasMasuk = Carbon::createFromTimeString(self::JAM_BATAS_MASUK);
-        $jamMasukCarbon = Carbon::now();
+        $jamMasukCarbon = Carbon::createFromFormat('Y-m-d H:i:s', $tanggalHariIni . ' ' . $jamMasuk);
+        $jamBatasMasuk = Carbon::createFromFormat('Y-m-d H:i:s', $tanggalHariIni . ' ' . self::JAM_BATAS_MASUK);
 
-        // Hitung apakah terlambat
         $isTerlambat = $jamMasukCarbon->gt($jamBatasMasuk);
         $status = $isTerlambat ? 'terlambat' : 'hadir';
 
-        // Hitung durasi keterlambatan jika terlambat
         $durasiTerlambat = null;
         if ($isTerlambat) {
-            $selisihMenit = $jamMasukCarbon->diffInMinutes($jamBatasMasuk);
-            $jam = intdiv($selisihMenit, 60);
-            $menit = $selisihMenit % 60;
+            $selisih = $jamMasukCarbon->diff($jamBatasMasuk);
+            $jam = $selisih->h;
+            $menit = $selisih->i;
 
-            if ($jam > 0) {
-                $durasiTerlambat = "{$jam} jam {$menit} menit";
-            } else {
-                $durasiTerlambat = "{$menit} menit";
-            }
+            $durasiTerlambat = $jam > 0
+                ? "{$jam} jam {$menit} menit"
+                : "{$menit} menit";
         }
 
-
-        // Debug log untuk memastikan logika benar
-        if (config('app.debug')) {
-            Log::info('=== LOGIKA KETERLAMBATAN ===');
-            Log::info('Jam Batas: ' . $jamBatasMasuk->format('Y-m-d H:i:s'));
-            Log::info('Jam Masuk: ' . $jamMasukCarbon->format('Y-m-d H:i:s'));
-            Log::info('Is Terlambat: ' . ($isTerlambat ? 'Ya' : 'Tidak'));
-            Log::info('Status: ' . $status);
-            Log::info('Durasi Terlambat: ' . ($durasiTerlambat ?? 'Tidak terlambat'));
-        }
-
-        // Simpan data absensi
         Absensi::create([
             'user_id' => Auth::id(),
             'tanggal' => $now->toDateString(),
@@ -114,9 +78,8 @@ class AbsensiController extends Controller
             'durasi_terlambat' => $durasiTerlambat,
         ]);
 
-        // Pesan response
         $message = $isTerlambat
-            ? "Absensi berhasil dicatat. Anda terlambat masuk pada jam {$jamMasuk} (terlambat {$durasiTerlambat})."
+            ? "Absensi berhasil dicatat. Anda terlambat {$durasiTerlambat}."
             : 'Absensi berhasil dicatat. Anda masuk tepat waktu.';
 
         return back()->with('success', $message);
@@ -129,16 +92,10 @@ class AbsensiController extends Controller
         $userId = Auth::id();
         $today = Carbon::now()->toDateString();
 
-        // Validasi IP Address untuk absen keluar juga
         if (!in_array($clientIp, $allowedIps)) {
-            $message = app()->environment('local')
-                ? "IP terdeteksi: {$clientIp}. IP yang diizinkan: " . implode(', ', $allowedIps)
-                : 'dan Anda hanya dapat absen dari jaringan kantor!';
-
-            return back()->with('error', $message);
+            return back()->with('error', 'Anda hanya dapat absen keluar dari jaringan kantor.');
         }
 
-        // Cari data absensi hari ini
         $absensi = Absensi::where('user_id', $userId)
             ->whereDate('tanggal', $today)
             ->first();
@@ -151,36 +108,23 @@ class AbsensiController extends Controller
             return back()->with('error', 'Anda sudah melakukan absen keluar hari ini.');
         }
 
-        // Update jam keluar
         $jamKeluar = Carbon::now()->format('H:i:s');
         $absensi->update([
             'jam_keluar' => $jamKeluar,
         ]);
 
-        return back()->with('success', "Absen keluar berhasil dicatat pada jam {$jamKeluar}.");
+        return back()->with('success', "Absen keluar berhasil pada jam {$jamKeluar}.");
     }
 
     private function getAllowedIps()
     {
         $ips = [
-            'local' => [
-                '127.0.0.1',
-                '::1',
-                '10.10.8.194',
-                '192.168.1.100',
-                '192.168.1.1',
-                '192.168.0.1',
-            ],
-            'staging' => [
-                '10.10.8.194',
-            ],
-            'production' => [
-                '10.10.8.194',
-            ]
+            'local' => ['127.0.0.1', '::1', '10.10.8.194', '192.168.1.1'],
+            'staging' => ['10.10.8.194'],
+            'production' => ['10.10.8.194']
         ];
 
-        $environment = app()->environment();
-        return $ips[$environment] ?? $ips['production'];
+        return $ips[app()->environment()] ?? $ips['production'];
     }
 
     private function getRealIpAddr($request)
@@ -189,26 +133,19 @@ class AbsensiController extends Controller
             'HTTP_CF_CONNECTING_IP',
             'HTTP_CLIENT_IP',
             'HTTP_X_FORWARDED_FOR',
-            'HTTP_X_FORWARDED',
-            'HTTP_X_CLUSTER_CLIENT_IP',
-            'HTTP_FORWARDED_FOR',
-            'HTTP_FORWARDED',
             'HTTP_X_REAL_IP',
             'REMOTE_ADDR'
         ];
 
         foreach ($headers as $header) {
             $ip = $request->server($header);
-
-            if (!empty($ip) && $ip !== 'unknown') {
-                if (strpos($ip, ',') !== false) {
-                    $ip = explode(',', $ip)[0];
-                }
-
-                $ip = trim($ip);
-
-                if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                    return $ip;
+            if (!empty($ip) && strtolower($ip) !== 'unknown') {
+                $ipList = explode(',', $ip);
+                foreach ($ipList as $i) {
+                    $cleanIp = trim($i);
+                    if (filter_var($cleanIp, FILTER_VALIDATE_IP)) {
+                        return $cleanIp;
+                    }
                 }
             }
         }
@@ -221,42 +158,26 @@ class AbsensiController extends Controller
         $clientIp = $this->getRealIpAddr($request);
         $allowedIps = $this->getAllowedIps();
 
-        $ipInfo = [
+        return response()->json([
             'environment' => app()->environment(),
-            'detected_ip' => $clientIp,
+            'client_ip' => $clientIp,
             'allowed_ips' => $allowedIps,
             'is_allowed' => in_array($clientIp, $allowedIps),
-            'laravel_ip' => $request->ip(),
-            'server_remote_addr' => $request->server('REMOTE_ADDR'),
-            'all_headers' => [
-                'HTTP_CF_CONNECTING_IP' => $request->server('HTTP_CF_CONNECTING_IP'),
-                'HTTP_CLIENT_IP' => $request->server('HTTP_CLIENT_IP'),
-                'HTTP_X_FORWARDED_FOR' => $request->server('HTTP_X_FORWARDED_FOR'),
-                'HTTP_X_REAL_IP' => $request->server('HTTP_X_REAL_IP'),
-                'HTTP_X_FORWARDED' => $request->server('HTTP_X_FORWARDED'),
-                'REMOTE_ADDR' => $request->server('REMOTE_ADDR'),
-            ],
-            'user_agent' => $request->userAgent(),
-            'timestamp' => now()->toDateTimeString(),
-        ];
-
-        return response()->json($ipInfo, 200, [], JSON_PRETTY_PRINT);
+        ]);
     }
 
     public function reset(Request $request)
     {
         if (!app()->environment('local')) {
-            abort(403, 'Method ini hanya tersedia di development environment');
+            abort(403, 'Reset hanya tersedia di local.');
         }
 
         $deleted = Absensi::where('user_id', Auth::id())
             ->whereDate('tanggal', Carbon::now()->toDateString())
             ->delete();
 
-        $message = $deleted > 0
-            ? 'Data absensi hari ini berhasil direset.'
-            : 'Tidak ada data absensi hari ini untuk direset.';
-
-        return back()->with('success', $message);
+        return back()->with('success', $deleted
+            ? 'Data absensi berhasil direset.'
+            : 'Tidak ada data untuk direset.');
     }
 }

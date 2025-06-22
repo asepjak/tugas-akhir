@@ -55,10 +55,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 
     // Verifikasi Perizinan
-    Route::get('/verifikasi', [VerifikasiPerizinanController::class, 'index'])->name('verifikasi.index');
-    Route::get('/verifikasi/create', [VerifikasiPerizinanController::class, 'create'])->name('verifikasi.create');
-    Route::post('/verifikasi/store', [VerifikasiPerizinanController::class, 'store'])->name('verifikasi.store');
+    // Route::get('/verifikasi', [VerifikasiPerizinanController::class, 'index'])->name('verifikasi.index');
+    // Route::get('/verifikasi/create', [VerifikasiPerizinanController::class, 'create'])->name('verifikasi.create');
+    // Route::post('/verifikasi/store', [VerifikasiPerizinanController::class, 'store'])->name('verifikasi.store');
     Route::patch('/permissions/{id}/status', [VerifikasiPerizinanController::class, 'updateStatus'])->name('permissions.updateStatus');
+    // Verifikasi izin (admin)
+    Route::get('/verifikasi/permissions', [VerifikasiPerizinanController::class, 'permissions'])->name('verifikasi.permissions');
+    // Route::put('/verifikasi/permissions/{id}', [VerifikasiPerizinanController::class, 'updateStatus'])->name('verifikasi.updateStatus');
+
 
     // Lihat semua data izin karyawan
     Route::get('/permissions', [VerifikasiPerizinanController::class, 'permissions'])->name('verifikasi.permissions');

@@ -27,6 +27,7 @@ class DashboardController extends Controller
         $month = $request->input('month', now()->format('m')); // default bulan ini
         $year = $request->input('year', now()->format('Y')); // default tahun ini
 
+        // Hitung absensi hadir berdasarkan bulan dan tahun
         $absensis = Absensi::where('user_id', $user->id)
             ->whereMonth('tanggal', $month)
             ->whereYear('tanggal', $year)
@@ -34,12 +35,38 @@ class DashboardController extends Controller
 
         $hadir = $absensis->count(); // karena jika ada absensi, dianggap hadir
 
-        // Ambil data izin milik user
-        $permissions = Permission::where('user_id', $user->id)->latest()->get();
+        // Ambil data permissions yang disetujui berdasarkan bulan dan tahun yang dipilih
+        $approvedPermissions = Permission::where('user_id', $user->id)
+            ->where('status', 'Disetujui') // hanya yang disetujui
+            ->where(function($query) use ($month, $year) {
+                // Cek apakah tanggal mulai atau rentang tanggal izin ada di bulan/tahun yang dipilih
+                $query->whereMonth('tanggal_mulai', $month)
+                      ->whereYear('tanggal_mulai', $year);
+            })
+            ->get();
 
-        // Hitung jumlah izin dan sakit dari data permissions jika ada kolom jenis
-        $sakit = $permissions->where('jenis', 'sakit')->count();
-        $izin  = $permissions->where('jenis', 'izin')->count();
+        // Hitung berdasarkan keterangan (case insensitive)
+        $sakit = $approvedPermissions->filter(function($item) {
+            return strtolower($item->keterangan) === 'sakit';
+        })->count();
+
+        $izin = $approvedPermissions->filter(function($item) {
+            return strtolower($item->keterangan) === 'izin';
+        })->count();
+
+        $cuti = $approvedPermissions->filter(function($item) {
+            return strtolower($item->keterangan) === 'cuti';
+        })->count();
+
+        // Jika ada keterangan lain seperti 'perjalanan keluar kota', bisa ditambahkan
+        $perjalanan = $approvedPermissions->filter(function($item) {
+            return strtolower($item->keterangan) === 'perjalanan keluar kota';
+        })->count();
+
+        // Ambil semua permissions untuk tabel riwayat (tidak dibatasi bulan/tahun)
+        $allPermissions = Permission::where('user_id', $user->id)
+            ->latest()
+            ->get();
 
         return view('dashboard.karyawan', compact(
             'month',
@@ -47,7 +74,8 @@ class DashboardController extends Controller
             'hadir',
             'sakit',
             'izin',
-            'permissions'
-        ));
+            'cuti',
+            'perjalanan'
+        ))->with('permissions', $allPermissions);
     }
 }

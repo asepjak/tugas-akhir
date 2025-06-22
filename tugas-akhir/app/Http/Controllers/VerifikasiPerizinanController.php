@@ -41,16 +41,16 @@ class VerifikasiPerizinanController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:Diterima,Ditolak',
+            'status' => 'required|in:Disetujui,Ditolak',
         ]);
-
 
         $permission = Permission::findOrFail($id);
         $permission->status = $request->status;
         $permission->save();
 
         return redirect()->route('verifikasi.permissions')->with('success', 'Status izin berhasil diperbarui.');
-        }
+    }
+
 
 
 
