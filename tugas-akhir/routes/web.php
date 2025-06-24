@@ -9,7 +9,8 @@ use App\Http\Controllers\{
     AbsensiController,
     VerifikasiPerizinanController,
     RekapAbsensiController,
-    AdminDashboardController
+    AdminDashboardController,
+    UserManagementController
 };
 
 Route::get('/', fn() => redirect('/login'));
@@ -31,8 +32,8 @@ Route::middleware(['auth', 'role:karyawan'])->prefix('karyawan')->group(function
     Route::get('/dashboard', [DashboardController::class, 'karyawan'])->name('dashboard');
 
     // Profile untuk Karyawan
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('karyawan.profile.edit');
+    Route::post('/profile/update', [ProfileController::class, 'update'])->name('karyawan.profile.update');
 
     // Permissions
     Route::get('/permissions', [PermissionController::class, 'index'])->name('karyawan.permission.index');
@@ -44,6 +45,7 @@ Route::middleware(['auth', 'role:karyawan'])->prefix('karyawan')->group(function
     Route::post('/absensi', [AbsensiController::class, 'store'])->name('absensi.store');
     Route::post('/absensi/keluar', [AbsensiController::class, 'keluar'])->name('absensi.keluar');
     Route::get('/absensi/check-ip', [AbsensiController::class, 'checkIp'])->name('karyawan.absensi.check-ip');
+    Route::get('/karyawan/surat-permission/{id}/print', [PermissionController::class, 'print'])->name('karyawan.permissions.print');
 });
 
 // Routes Admin
@@ -51,8 +53,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
     // Profile untuk Admin
-    // Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    // Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('admin.profile.edit');
+    Route::post('/profile/update', [ProfileController::class, 'update'])->name('admin.profile.update');
 
     // Verifikasi Perizinan
     // Route::get('/verifikasi', [VerifikasiPerizinanController::class, 'index'])->name('verifikasi.index');
@@ -61,6 +63,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::patch('/permissions/{id}/status', [VerifikasiPerizinanController::class, 'updateStatus'])->name('permissions.updateStatus');
     // Verifikasi izin (admin)
     Route::get('/verifikasi/permissions', [VerifikasiPerizinanController::class, 'permissions'])->name('verifikasi.permissions');
+    Route::get('/admin/rekap/cetak', [RekapAbsensiController::class, 'print'])->name('admin.rekap.bulanan.print');
     // Route::put('/verifikasi/permissions/{id}', [VerifikasiPerizinanController::class, 'updateStatus'])->name('verifikasi.updateStatus');
 
 
@@ -74,6 +77,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
     Route::get('rekap/bulanan', [RekapAbsensiController::class, 'bulanan'])->name('admin.rekap.bulanan');
     Route::get('/admin/rekap/export', [RekapAbsensiController::class, 'exportBulanan'])->name('admin.rekap.export');
+
+    //user management
+    Route::get('/users', [UserManagementController::class, 'index'])->name('admin.users.index');
+    Route::get('/users/create', [UserManagementController::class, 'create'])->name('admin.users.create');
+    Route::post('/users', [UserManagementController::class, 'store'])->name('admin.users.store');
+    Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('admin.users.edit');
+    Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('admin.users.update');
 });
 
 // Universal Profile Routes (fallback untuk semua role)

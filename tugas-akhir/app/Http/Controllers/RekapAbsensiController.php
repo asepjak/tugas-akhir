@@ -115,4 +115,37 @@ class RekapAbsensiController extends Controller
             'Cache-Control' => 'max-age=0',
         ]);
     }
+    public function print(Request $request)
+    {
+        $bulan = $request->get('bulan', date('m'));
+        $tahun = $request->get('tahun', date('Y'));
+
+        $users = User::where('role', 'karyawan')->get();
+        $data = [];
+
+        foreach ($users as $user) {
+            $absensi = Absensi::where('user_id', $user->id)
+                ->whereMonth('tanggal', $bulan)
+                ->whereYear('tanggal', $tahun)
+                ->get();
+
+            if ($absensi->count() > 0) {
+                $hadir = $absensi->where('status', 'hadir')->count();
+                $izin = $absensi->where('status', 'izin')->count();
+                $sakit = $absensi->where('status', 'sakit')->count();
+                $terlambat = $absensi->where('status', 'terlambat')->count();
+
+                $data[] = [
+                    'user' => $user,
+                    'hadir' => $hadir,
+                    'izin' => $izin,
+                    'sakit' => $sakit,
+                    'terlambat' => $terlambat,
+                    'total' => $hadir + $izin + $sakit + $terlambat,
+                ];
+            }
+        }
+
+        return view('admin.rekap.print', compact('data', 'bulan', 'tahun'));
+    }
 }

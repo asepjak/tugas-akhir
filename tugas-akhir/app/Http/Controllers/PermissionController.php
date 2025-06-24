@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 use App\Models\Permission;
 
 class PermissionController extends Controller
@@ -19,7 +18,6 @@ class PermissionController extends Controller
     {
         return view('karyawan.permissions.create');
     }
-
 
     public function store(Request $request)
     {
@@ -43,9 +41,20 @@ class PermissionController extends Controller
             'tanggal_mulai' => $request->tanggal_mulai,
             'tanggal_selesai' => $request->tanggal_selesai,
             'file_surat' => $file,
-            'status' => 'Menunggu', // <- jangan lupa default status
+            'status' => 'Menunggu',
         ]);
 
         return redirect()->route('dashboard')->with('success', 'Permohonan izin berhasil dikirim.');
+    }
+
+    public function downloadTemplate()
+    {
+        $path = public_path('assets/template-izin.png');
+
+        if (file_exists($path)) {
+            return response()->download($path, 'template-izin.png');
+        }
+
+        abort(404, 'Template surat tidak ditemukan.');
     }
 }

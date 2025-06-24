@@ -4,6 +4,7 @@
 
 @push('styles')
     {{-- <link rel="stylesheet" href="{{ asset('css/dashboard-karyawan.css') }}?v={{ time() }}"> --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         .status-card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -120,7 +121,7 @@
             <div class="col-md-3">
                 <div class="card status-card text-center shadow-sm border-0">
                     <div class="card-body py-4">
-                        <img src="{{ asset('assets/leave.png') }}" width="50" class="mb-3">
+                        <img src="{{ asset('assets/calendar.png') }}" width="50" class="mb-3">
                         <h2 class="fw-bold text-secondary">{{ $cuti }}</h2>
                         <p class="text-muted mb-0">Cuti</p>
                     </div>
@@ -130,7 +131,7 @@
             <div class="col-md-3">
                 <div class="card status-card text-center shadow-sm border-0">
                     <div class="card-body py-4">
-                        <img src="{{ asset('assets/travel.png') }}" width="50" class="mb-3">
+                       <i class="bi bi-truck-front-fill fs-1 text-primary mb-3"></i>
                         <h2 class="fw-bold text-primary">{{ $perjalanan ?? 0 }}</h2>
                         <p class="text-muted mb-0">Perjalanan</p>
                     </div>

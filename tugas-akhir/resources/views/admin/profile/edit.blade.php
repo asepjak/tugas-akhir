@@ -110,7 +110,7 @@
                     @endif
 
                     <!-- Profile Form -->
-                   <form id="profileForm" method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
+                   <form id="profileForm" method="POST" action="{{ route('admin.profile.update') }}" enctype="multipart/form-data">
                         @csrf
                         <div class="row g-4">
                             <!-- Left Column -->

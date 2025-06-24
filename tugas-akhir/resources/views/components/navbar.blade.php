@@ -44,7 +44,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownSettings">
                         <li>
-                            <a class="dropdown-item py-2" href="{{ route('profile.edit') }}">
+                            <a class="dropdown-item py-2" href="{{ route('karyawan.profile.edit') }}">
                                 <i class="fas fa-user me-2"></i>Profil
                             </a>
                         </li>

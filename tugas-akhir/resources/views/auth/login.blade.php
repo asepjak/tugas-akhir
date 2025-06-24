@@ -9,22 +9,23 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #007bff;
-            --secondary-color: #00bcd4;
-            --accent-color: #0056b3;
-            --text-dark: #333;
-            --text-muted: #6c757d;
-            --border-color: #ced4da;
-            --shadow-light: rgba(0, 0, 0, 0.1);
-            --shadow-medium: rgba(0, 0, 0, 0.2);
+            --primary-color: #2c2c2c;
+            --secondary-color: #4d4d4d;
+            --accent-color: #1a1a1a;
+            --text-dark: #1a1a1a;
+            --text-muted: #888888;
+            --border-color: #bfbfbf;
+            --shadow-light: rgba(0, 0, 0, 0.05);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
         }
+
 
         * {
             box-sizing: border-box;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #ececec 100%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #444444 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -51,6 +52,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -59,7 +61,7 @@
 
         .login-left {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
+            color: #ffffff;
             padding: 4rem 3rem;
             flex: 1;
             display: flex;
@@ -77,13 +79,20 @@
             right: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
             animation: float 6s ease-in-out infinite;
         }
 
         @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            50% { transform: translate(-20px, -20px) rotate(180deg); }
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            50% {
+                transform: translate(-20px, -20px) rotate(180deg);
+            }
         }
 
         .login-left .content {
@@ -96,7 +105,7 @@
             font-weight: 800;
             line-height: 1.2;
             margin-bottom: 1rem;
-            text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .login-left p {
@@ -216,7 +225,7 @@
         }
 
         .btn-login {
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            background: linear-gradient(135deg, #3a3a3a, #000000);
             color: white;
             font-weight: 600;
             border: none;
@@ -235,7 +244,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
             transition: left 0.5s;
         }
 
@@ -317,6 +326,7 @@
         }
 
         @media (max-width: 576px) {
+
             .login-left,
             .login-right {
                 padding: 2rem 1.5rem;
@@ -349,14 +359,9 @@
         }
 
         /* Accessibility improvements */
-        .form-control:focus {
-            outline: 2px solid var(--primary-color);
-            outline-offset: 2px;
-        }
-
+        .form-control:focus,
         .btn-login:focus {
-            outline: 2px solid var(--primary-color);
-            outline-offset: 2px;
+            outline: 2px solid #555;
         }
 
         /* Print styles */
@@ -405,11 +410,13 @@
                     @csrf
                     <div class="form-group mb-3">
                         <i class="bi bi-person-fill"></i>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="Email / Username" required>
+                        <input type="email" class="form-control" id="email" name="email"
+                            placeholder="Email / Username" required>
                     </div>
                     <div class="form-group mb-4">
                         <i class="bi bi-lock-fill"></i>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                        <input type="password" class="form-control" id="password" name="password"
+                            placeholder="Password" required>
                         <button type="button" class="toggle-password" id="togglePassword" tabindex="-1">
                             <i class="bi bi-eye-slash"></i>
                         </button>

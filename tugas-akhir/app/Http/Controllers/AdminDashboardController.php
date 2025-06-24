@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Absensi;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class AdminDashboardController extends Controller
@@ -15,6 +14,7 @@ class AdminDashboardController extends Controller
         $bulan = $request->get('bulan', now()->format('m'));
         $tahun = now()->format('Y');
         $nama = $request->get('nama');
+        $statusFilter = $request->get('status');
 
         $bulanList = [
             '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
@@ -23,13 +23,34 @@ class AdminDashboardController extends Controller
             '10' => 'Oktober', '11' => 'November', '12' => 'Desember',
         ];
 
-        // ✅ Absensi hari ini
-        $absensiHariIni = Absensi::with('user')
+        // Data absensi hari ini
+        $absensiQuery = Absensi::with('user')
             ->whereDate('created_at', Carbon::today())
-            ->latest()
-            ->get();
+            ->latest();
 
-        // ✅ Grafik batang absensi harian di bulan tertentu
+        if ($statusFilter === 'sudah') {
+            $absensiHariIni = $absensiQuery->get();
+        } elseif ($statusFilter === 'belum') {
+            $absenUserIds = Absensi::whereDate('created_at', Carbon::today())->pluck('user_id')->toArray();
+            $usersBelumAbsen = User::whereNotIn('id', $absenUserIds)->get();
+            $absensiHariIni = collect();
+            foreach ($usersBelumAbsen as $u) {
+                $absensiHariIni->push((object)[
+                    'user' => $u,
+                    'created_at' => null,
+                    'status' => 'belum absen'
+                ]);
+            }
+        } else {
+            $absensiHariIni = $absensiQuery->get();
+        }
+
+        $totalKaryawan = User::count();
+        $hadirHariIni = $absensiHariIni->where('status', 'hadir')->count();
+        $terlambatHariIni = $absensiHariIni->where('status', 'terlambat')->count();
+        $belumAbsenHariIni = $totalKaryawan - $absensiHariIni->whereNotNull('created_at')->count();
+
+        // Grafik batang absensi per hari dalam bulan
         $chartRaw = Absensi::selectRaw('DAY(created_at) as hari, COUNT(*) as total')
             ->whereMonth('created_at', $bulan)
             ->whereYear('created_at', $tahun)
@@ -39,7 +60,6 @@ class AdminDashboardController extends Controller
 
         $labels = [];
         $data = [];
-
         foreach ($chartRaw as $row) {
             $labels[] = 'Tgl ' . $row->hari;
             $data[] = $row->total;
@@ -50,7 +70,7 @@ class AdminDashboardController extends Controller
             'data' => $data,
         ];
 
-        // ✅ Grafik pie per orang (hadir, sakit, izin, terlambat)
+        // Grafik pie chart status per orang
         $queryPie = Absensi::with('user')
             ->whereMonth('tanggal', $bulan)
             ->whereYear('tanggal', $tahun);
@@ -65,13 +85,10 @@ class AdminDashboardController extends Controller
         $absensiFiltered = $queryPie->get();
 
         $pieChart = [
-            'labels' => ['Hadir', 'Izin', 'Sakit', 'Terlambat'],
-            'data' => [
-                $absensiFiltered->where('status', 'hadir')->count(),
-                $absensiFiltered->where('status', 'izin')->count(),
-                $absensiFiltered->where('status', 'sakit')->count(),
-                $absensiFiltered->where('status', 'terlambat')->count(),
-            ]
+            'hadir' => $absensiFiltered->where('status', 'hadir')->count(),
+            'izin' => $absensiFiltered->where('status', 'izin')->count(),
+            'sakit' => $absensiFiltered->where('status', 'sakit')->count(),
+            'terlambat' => $absensiFiltered->where('status', 'terlambat')->count(),
         ];
 
         return view('admin.dashboard', compact(
@@ -80,7 +97,12 @@ class AdminDashboardController extends Controller
             'bulanList',
             'bulan',
             'nama',
-            'pieChart'
+            'pieChart',
+            'totalKaryawan',
+            'hadirHariIni',
+            'terlambatHariIni',
+            'belumAbsenHariIni',
+            'statusFilter'
         ));
     }
 }

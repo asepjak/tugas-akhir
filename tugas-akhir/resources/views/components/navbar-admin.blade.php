@@ -40,6 +40,12 @@
                         <i class="fas fa-table me-1 d-lg-none"></i>Rekap Absensi
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active fw-bold text-primary' : '' }}"
+                        href="{{ route('admin.users.index') }}">
+                        <i class="fas fa-users me-1 d-lg-none"></i>Manajemen User
+                    </a>
+                </li>
                 <!-- Profil Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle px-2 px-lg-3 py-2" href="#" id="navbarDropdownSettings"
@@ -48,7 +54,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownSettings">
                         <li>
-                            <a class="dropdown-item py-2" href="{{ route('profile.edit') }}">
+                            <a class="dropdown-item py-2" href="{{ route('admin.profile.edit') }}">
                                 <i class="fas fa-user me-2"></i>Profil
                             </a>
                         </li>
