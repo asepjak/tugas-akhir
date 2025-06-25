@@ -36,9 +36,11 @@ Route::middleware(['auth', 'role:karyawan'])->prefix('karyawan')->group(function
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('karyawan.profile.update');
 
     // Permissions
-    Route::get('/permissions', [PermissionController::class, 'index'])->name('karyawan.permission.index');
+    Route::get('/permissions', [PermissionController::class, 'index'])->name('karyawan.permissions.index');
     Route::get('/permissions/create', [PermissionController::class, 'create'])->name('karyawan.permission.create');
     Route::post('/permissions', [PermissionController::class, 'store'])->name('karyawan.permission.store');
+    Route::delete('permissions/{id}', [PermissionController::class, 'destroy'])->name('karyawan.permissions.destroy');
+    Route::get('/karyawan/permissions/print/{id}', [PermissionController::class, 'print'])->name('karyawan.permissions.print');
 
     // Absensi
     Route::get('/absensi', [AbsensiController::class, 'index'])->name('karyawan.absensi.index');
@@ -84,6 +86,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/users', [UserManagementController::class, 'store'])->name('admin.users.store');
     Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('admin.users.edit');
     Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('admin.users.update');
+
+    //absensi
+    Route::get('/absensi', [AbsensiController::class, 'index'])->name('admin.absensi.index');
+    Route::post('/absensi/masuk', [AbsensiController::class, 'store'])->name('admin.absensi.store');
+    Route::post('/absensi/keluar', [AbsensiController::class, 'keluar'])->name('admin.absensi.keluar');
+    Route::get('/absensi/check-ip', [AbsensiController::class, 'checkIp'])->name('admin.absensi.check-ip');
 });
 
 // Universal Profile Routes (fallback untuk semua role)

@@ -13,6 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         // Global middleware
         $middleware->web(append: [
+            // TAMBAHKAN SESSION MIDDLEWARE INI!
+            \Illuminate\Session\Middleware\StartSession::class,
             \App\Http\Middleware\ShareFlashMessages::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);

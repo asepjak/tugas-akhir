@@ -15,10 +15,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('keterangan'); // Sakit, Izin, Cuti
-            $table->text('alasan');
+            $table->text('alasan') -> nullable();
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai');
             $table->string('file_surat')->nullable(); // file path
+            $table->string('perjalanan_keluar_kota')->nullable();
+            $table->string('nomor_unit')->nullable();
+            $table->string('muatan')->nullable();
+            $table->string('merek_muatan')->nullable();
             $table->enum('status', ['Menunggu', 'Disetujui', 'Ditolak'])->default('Menunggu');
             $table->timestamps();
         });

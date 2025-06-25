@@ -3,7 +3,7 @@
 @section('content')
 <div class="container py-4">
     <h4>Unggah Perizinan</h4>
-    <form action="{{ route('karyawan.permissions.store') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('karyawan.permission.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="row">
             <div class="col-md-6">

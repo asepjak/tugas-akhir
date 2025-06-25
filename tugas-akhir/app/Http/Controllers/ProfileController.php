@@ -21,7 +21,7 @@ class ProfileController extends Controller
         $view = match ($user->role) {
             'admin' => 'admin.profile.edit',
             'pimpinan' => 'pimpinan.profile.edit',
-            
+            'karyawan' => 'karyawan.profile.edit'
         };
 
         return view($view, compact('user'));
@@ -43,38 +43,64 @@ class ProfileController extends Controller
             'no_hp'    => 'nullable|string|max:20',
             'jabatan'  => 'nullable|string|max:255',
             'status'   => 'nullable|in:Aktif,Tidak Aktif,Cuti',
-            'password' => 'nullable|string|min:6|confirmed',
-            'foto'     => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'password' => 'nullable|string|min:6',
+            'foto'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        // Upload foto baru
-        if ($request->hasFile('foto')) {
-            if ($user->foto && Storage::disk('public')->exists($user->foto)) {
-                Storage::disk('public')->delete($user->foto);
+        try {
+            // Dapatkan user dari database untuk memastikan instance model yang benar
+            $userModel = User::findOrFail($user->id);
+
+            // Siapkan data untuk update
+            $updateData = [
+                'nama'     => $validated['nama'],
+                'name'     => $validated['nama'], // Untuk kolom default Laravel
+                'email'    => $validated['email'],
+                'username' => $validated['username'],
+                'alamat'   => $validated['alamat'] ?? null,
+                'no_hp'    => $validated['no_hp'] ?? null,
+                'jabatan'  => $validated['jabatan'] ?? null,
+                'status'   => $validated['status'] ?? null,
+            ];
+
+            // Proses upload foto
+            if ($request->hasFile('foto')) {
+                // Hapus foto lama jika ada
+                if ($userModel->foto && Storage::disk('public')->exists($userModel->foto)) {
+                    Storage::disk('public')->delete($userModel->foto);
+                }
+
+                // Upload foto baru
+                $file = $request->file('foto');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('foto', $filename, 'public');
+
+                // Tambahkan path foto ke data update
+                $updateData['foto'] = $path;
             }
 
-            $path = $request->file('foto')->store('foto', 'public');
-            $user->foto = $path;
+            // Update password jika diisi
+            if (!empty($validated['password'])) {
+                $updateData['password'] = Hash::make($validated['password']);
+            }
+
+            // Update data ke database menggunakan query builder
+            $updated = User::where('id', $user->id)->update($updateData);
+
+            if ($updated) {
+                return redirect()->route($this->getProfileEditRoute($user->role))
+                    ->with('success', 'Profil berhasil diperbarui.');
+            } else {
+                return redirect()->back()
+                    ->with('error', 'Gagal memperbarui profil.')
+                    ->withInput();
+            }
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->withInput();
         }
-
-        // Simpan data
-        $user->nama     = $validated['nama'];
-        $user->name     = $validated['nama']; // wajib untuk kolom default Laravel
-        $user->email    = $validated['email'];
-        $user->username = $validated['username'];
-        $user->alamat   = $validated['alamat'] ?? null;
-        $user->no_hp    = $validated['no_hp'] ?? null;
-        $user->jabatan  = $validated['jabatan'] ?? null;
-        $user->status   = $validated['status'] ?? null;
-
-        if (!empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
-        }
-
-        $user = Auth::user();
-
-        return redirect()->route($this->getProfileEditRoute($user->role))
-            ->with('success', 'Profil berhasil diperbarui.');
     }
 
     private function getProfileEditRoute($role)
@@ -82,7 +108,7 @@ class ProfileController extends Controller
         return match ($role) {
             'admin' => 'admin.profile.edit',
             'pimpinan' => 'pimpinan.profile.edit',
-
+            'karyawan' => 'karyawan.profile.edit',
         };
     }
 
@@ -126,8 +152,10 @@ class ProfileController extends Controller
             return back()->withErrors(['current_password' => 'Password lama salah.']);
         }
 
-        $user->password = Hash::make($validated['new_password']);
-        $user = Auth::user();
+        // Update password menggunakan query builder
+        User::where('id', $user->id)->update([
+            'password' => Hash::make($validated['new_password'])
+        ]);
 
         return redirect()->route($this->getProfileEditRoute($user->role))
             ->with('success', 'Password berhasil diubah.');

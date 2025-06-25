@@ -27,7 +27,10 @@ class AbsensiController extends Controller
             ->whereDate('tanggal', $today)
             ->first();
 
-        return view('karyawan.absensi.index', compact('absensi', 'absenHariIni'));
+        // Tentukan view berdasarkan role
+        $view = $this->getAbsensiViewByRole($user->role);
+
+        return view($view, compact('absensi', 'absenHariIni'));
     }
 
     public function store(Request $request)
@@ -114,6 +117,32 @@ class AbsensiController extends Controller
         ]);
 
         return back()->with('success', "Absen keluar berhasil pada jam {$jamKeluar}.");
+    }
+
+    /**
+     * Method untuk menentukan view berdasarkan role user
+     */
+    private function getAbsensiViewByRole($role)
+    {
+        return match ($role) {
+            'admin' => 'admin.absensi.index',
+            'pimpinan' => 'pimpinan.absensi.index',
+            'karyawan' => 'karyawan.absensi.index',
+            default => 'karyawan.absensi.index'
+        };
+    }
+
+    /**
+     * Method untuk menentukan route redirect berdasarkan role
+     */
+    private function getAbsensiRouteByRole($role)
+    {
+        return match ($role) {
+            'admin' => 'admin.absensi.index',
+            'pimpinan' => 'pimpinan.absensi.index',
+            'karyawan' => 'karyawan.absensi.index',
+            default => 'karyawan.absensi.index'
+        };
     }
 
     private function getAllowedIps()

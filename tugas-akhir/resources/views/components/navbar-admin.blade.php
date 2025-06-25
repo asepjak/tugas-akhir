@@ -29,6 +29,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link px-2 px-lg-3 py-2" href="{{ route('admin.absensi.index') }}">
+                        <i class="fas fa-clock me-1 d-lg-none"></i>Presensi
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('verifikasi.permissions') ? 'active fw-bold text-primary' : '' }}"
                         href="{{ route('verifikasi.permissions') }}">
                         <i class="fas fa-file-alt me-1 d-lg-none"></i>Data Izin Karyawan
