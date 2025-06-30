@@ -89,9 +89,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
     //absensi
     Route::get('/absensi', [AbsensiController::class, 'index'])->name('admin.absensi.index');
-    Route::post('/absensi/masuk', [AbsensiController::class, 'store'])->name('admin.absensi.store');
+    Route::post('/absensi', [AbsensiController::class, 'store'])->name('admin.absensi.store');
     Route::post('/absensi/keluar', [AbsensiController::class, 'keluar'])->name('admin.absensi.keluar');
     Route::get('/absensi/check-ip', [AbsensiController::class, 'checkIp'])->name('admin.absensi.check-ip');
+    Route::delete('/absensi/reset', [AbsensiController::class, 'reset'])->name('admin.absensi.reset');
+    Route::get('/absensi/rekap', [AbsensiController::class, 'rekap'])->name('admin.absensi.rekap');
 });
 
 // Universal Profile Routes (fallback untuk semua role)

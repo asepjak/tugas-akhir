@@ -22,7 +22,7 @@
                                 <th>Selesai</th>
                                 <th>Status</th>
                                 <th>Surat</th>
-                                <th>Aksi</th>
+                                <th>Keterangan</th>
                             </tr>
                         </thead>
                         <tbody>

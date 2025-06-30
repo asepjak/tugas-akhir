@@ -11,7 +11,7 @@ use Carbon\Carbon;
 class AbsensiController extends Controller
 {
     // Jam batas masuk kantor
-    const JAM_BATAS_MASUK = '08:00:00';
+    const JAM_BATAS_MASUK = '08:30:00'; // Disesuaikan dengan jam di view
 
     public function index()
     {
@@ -39,6 +39,7 @@ class AbsensiController extends Controller
         $clientIp = $this->getRealIpAddr($request);
         $now = Carbon::now();
         $jamMasuk = $now->format('H:i:s');
+        $user = Auth::user();
 
         if (!in_array($clientIp, $allowedIps)) {
             return back()->with('error', 'Anda hanya dapat absen dari jaringan kantor.');
@@ -85,7 +86,8 @@ class AbsensiController extends Controller
             ? "Absensi berhasil dicatat. Anda terlambat {$durasiTerlambat}."
             : 'Absensi berhasil dicatat. Anda masuk tepat waktu.';
 
-        return back()->with('success', $message);
+        return redirect()->route($this->getAbsensiRouteByRole($user->role))
+                         ->with('success', $message);
     }
 
     public function keluar(Request $request)
@@ -93,6 +95,7 @@ class AbsensiController extends Controller
         $allowedIps = $this->getAllowedIps();
         $clientIp = $this->getRealIpAddr($request);
         $userId = Auth::id();
+        $user = Auth::user();
         $today = Carbon::now()->toDateString();
 
         if (!in_array($clientIp, $allowedIps)) {
@@ -116,7 +119,8 @@ class AbsensiController extends Controller
             'jam_keluar' => $jamKeluar,
         ]);
 
-        return back()->with('success', "Absen keluar berhasil pada jam {$jamKeluar}.");
+        return redirect()->route($this->getAbsensiRouteByRole($user->role))
+                         ->with('success', "Absen keluar berhasil pada jam {$jamKeluar}.");
     }
 
     /**
@@ -142,6 +146,45 @@ class AbsensiController extends Controller
             'pimpinan' => 'pimpinan.absensi.index',
             'karyawan' => 'karyawan.absensi.index',
             default => 'karyawan.absensi.index'
+        };
+    }
+
+    /**
+     * Method untuk menentukan route keluar berdasarkan role
+     */
+    private function getKeluarRouteByRole($role)
+    {
+        return match ($role) {
+            'admin' => 'admin.absensi.keluar',
+            'pimpinan' => 'pimpinan.absensi.keluar',
+            'karyawan' => 'absensi.keluar',
+            default => 'absensi.keluar'
+        };
+    }
+
+    /**
+     * Method untuk menentukan route store berdasarkan role
+     */
+    private function getStoreRouteByRole($role)
+    {
+        return match ($role) {
+            'admin' => 'admin.absensi.store',
+            'pimpinan' => 'pimpinan.absensi.store',
+            'karyawan' => 'absensi.store',
+            default => 'absensi.store'
+        };
+    }
+
+    /**
+     * Method untuk menentukan route check-ip berdasarkan role
+     */
+    private function getCheckIpRouteByRole($role)
+    {
+        return match ($role) {
+            'admin' => 'admin.absensi.check-ip',
+            'pimpinan' => 'pimpinan.absensi.check-ip',
+            'karyawan' => 'karyawan.absensi.check-ip',
+            default => 'karyawan.absensi.check-ip'
         };
     }
 
@@ -208,5 +251,21 @@ class AbsensiController extends Controller
         return back()->with('success', $deleted
             ? 'Data absensi berhasil direset.'
             : 'Tidak ada data untuk direset.');
+    }
+
+    /**
+     * Method untuk mendapatkan data routes yang diperlukan untuk view
+     * Ini akan digunakan di view untuk menentukan action form
+     */
+    public function getRoutesForView()
+    {
+        $user = Auth::user();
+
+        return [
+            'store' => route($this->getStoreRouteByRole($user->role)),
+            'keluar' => route($this->getKeluarRouteByRole($user->role)),
+            'check_ip' => route($this->getCheckIpRouteByRole($user->role)),
+            'reset' => $user->role === 'karyawan' ? route('absensi.reset') : route($user->role . '.absensi.reset')
+        ];
     }
 }

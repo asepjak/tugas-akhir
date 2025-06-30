@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Absensi;
 use App\Models\User;
-use Illuminate\Support\Facades\Date;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -26,7 +25,7 @@ class RekapAbsensiController extends Controller
         $users = User::where('role', 'karyawan')->get();
         $data = [];
 
-        // Hitung jumlah hari kerja (Senin - Jumat) pada bulan tersebut
+        // Hitung jumlah hari kerja (Senin - Jumat)
         $jumlahHariKerja = 0;
         $startDate = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth();
         $endDate = $startDate->copy()->endOfMonth();
@@ -44,10 +43,12 @@ class RekapAbsensiController extends Controller
                 ->get();
 
             if ($absensi->count() > 0) {
-                $hadir = $absensi->where('status', 'hadir')->count();
+                $hadirTepat = $absensi->where('status', 'hadir')->count();
+                $terlambat = $absensi->where('status', 'terlambat')->count();
+                $hadir = $hadirTepat + $terlambat;
+
                 $izin = $absensi->where('status', 'izin')->count();
                 $sakit = $absensi->where('status', 'sakit')->count();
-                $terlambat = $absensi->where('status', 'terlambat')->count();
 
                 $data[] = [
                     'user' => $user,
@@ -55,7 +56,7 @@ class RekapAbsensiController extends Controller
                     'jumlah_izin' => $izin,
                     'jumlah_sakit' => $sakit,
                     'jumlah_terlambat' => $terlambat,
-                    'jumlah_total' => $hadir + $izin + $sakit + $terlambat,
+                    'jumlah_total' => $hadir + $izin + $sakit,
                 ];
             }
         }
@@ -78,10 +79,12 @@ class RekapAbsensiController extends Controller
                 ->get();
 
             if ($absensi->count() > 0) {
-                $hadir = $absensi->where('status', 'hadir')->count();
+                $hadirTepat = $absensi->where('status', 'hadir')->count();
+                $terlambat = $absensi->where('status', 'terlambat')->count();
+                $hadir = $hadirTepat + $terlambat;
+
                 $izin = $absensi->where('status', 'izin')->count();
                 $sakit = $absensi->where('status', 'sakit')->count();
-                $terlambat = $absensi->where('status', 'terlambat')->count();
 
                 $data[] = [
                     'Nama' => $user->nama ?? $user->name,
@@ -89,7 +92,7 @@ class RekapAbsensiController extends Controller
                     'Izin' => $izin,
                     'Sakit' => $sakit,
                     'Terlambat' => $terlambat,
-                    'Total' => $hadir + $izin + $sakit + $terlambat,
+                    'Total' => $hadir + $izin + $sakit,
                 ];
             }
         }
@@ -115,6 +118,7 @@ class RekapAbsensiController extends Controller
             'Cache-Control' => 'max-age=0',
         ]);
     }
+
     public function print(Request $request)
     {
         $bulan = $request->get('bulan', date('m'));
@@ -130,10 +134,12 @@ class RekapAbsensiController extends Controller
                 ->get();
 
             if ($absensi->count() > 0) {
-                $hadir = $absensi->where('status', 'hadir')->count();
+                $hadirTepat = $absensi->where('status', 'hadir')->count();
+                $terlambat = $absensi->where('status', 'terlambat')->count();
+                $hadir = $hadirTepat + $terlambat;
+
                 $izin = $absensi->where('status', 'izin')->count();
                 $sakit = $absensi->where('status', 'sakit')->count();
-                $terlambat = $absensi->where('status', 'terlambat')->count();
 
                 $data[] = [
                     'user' => $user,
@@ -141,7 +147,7 @@ class RekapAbsensiController extends Controller
                     'izin' => $izin,
                     'sakit' => $sakit,
                     'terlambat' => $terlambat,
-                    'total' => $hadir + $izin + $sakit + $terlambat,
+                    'total' => $hadir + $izin + $sakit,
                 ];
             }
         }

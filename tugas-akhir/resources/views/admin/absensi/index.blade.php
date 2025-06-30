@@ -359,7 +359,7 @@
             <div class="dev-tools">
                 <h6>🔧 Development Tools</h6>
                 @if ($absenHariIni)
-                    <form method="POST" action="{{ route('admin.absensi.reset') }}" style="display:inline;">
+                    <form method="POST" action="{{ route('absensi.reset') }}" style="display:inline;">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn-absen btn-dev"
@@ -383,7 +383,7 @@
                 <p style="margin-bottom: 15px; color: #495057; font-weight: 500;">
                     🚪 Silakan lakukan absen masuk
                 </p>
-                <form method="POST" action="{{ route('absensi.store') }}" style="display:inline;">
+                <form method="POST" action="{{ route('admin.absensi.store') }}" style="display:inline;">
                     @csrf
                     <button type="submit" class="btn-absen btn-masuk">
                         🚪 Waktu Masuk
@@ -394,7 +394,7 @@
                 <p style="margin-bottom: 15px; color: #495057; font-weight: 500;">
                     🏠 Anda sudah absen masuk, silakan absen keluar
                 </p>
-                <form method="POST" action="{{ route('absensi.keluar') }}" style="display:inline;">
+                <form method="POST" action="{{ route('admin.absensi.keluar') }}" style="display:inline;">
                     @csrf
                     <button type="submit" class="btn-absen btn-keluar">
                         🏠 Waktu Pulang

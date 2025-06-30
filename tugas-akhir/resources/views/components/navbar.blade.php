@@ -1,3 +1,40 @@
+<style>
+    /* Efek hover pada link navbar */
+    .navbar-nav .nav-link {
+        transition: background-color 0.3s ease, color 0.3s ease;
+        border-radius: 10px;
+    }
+
+    .navbar-nav .nav-link:hover,
+    .navbar-nav .nav-link:focus {
+        background-color: #0d6efd1a; /* Biru muda transparan */
+        color: #0d6efd; /* Warna utama Bootstrap */
+    }
+
+    .navbar-nav .nav-link i {
+        transition: transform 0.3s ease;
+    }
+
+    .navbar-nav .nav-link:hover i {
+        transform: scale(1.2); /* Ikon membesar sedikit saat hover */
+    }
+
+    /* Dropdown item styling */
+    .dropdown-menu .dropdown-item {
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .dropdown-menu .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+    }
+
+    /* Tombol Logout hover */
+    .dropdown-item.text-danger:hover {
+        background-color: #ffe5e5;
+        color: #dc3545;
+    }
+</style>
 <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-3 px-lg-4">
     <div class="container-fluid">
         <!-- Brand/Profile Section -->

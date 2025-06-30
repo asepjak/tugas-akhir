@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="container py-4">
-        <h4 class="fw-bold text-uppercase text-center mb-4">Ajuan Izin Karyawan</h4>
+        <h4 class="fw-bold text-uppercase text-center mb-4">Ajuan Karyawan</h4>
 
         <!-- Alert Messages -->
         @if (session('success'))
@@ -35,7 +35,7 @@
         <!-- Form Card -->
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Form Ajuan Izin</h5>
+                <h5 class="mb-0">Form Ajuan Karyawan</h5>
             </div>
             <div class="card-body">
                 <!-- Template Download -->
@@ -65,12 +65,10 @@
                         </ul>
                     </div>
                 </div>
-
                 <!-- Main Form -->
                 <form action="{{ route('karyawan.permission.store') }}" method="POST" enctype="multipart/form-data"
                     id="permissionForm">
                     @csrf
-
                     <!-- Baris pertama -->
                     <div class="row g-3">
                         <!-- Keterangan -->
@@ -90,7 +88,6 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-
                         <!-- Alasan -->
                         <div class="col-md-6 col-lg-2">
                             <label for="alasan" class="form-label">Alasan</label>
@@ -198,11 +195,10 @@
                 </form>
             </div>
         </div>
-
         <!-- History Table -->
         <div class="card shadow-sm">
             <div class="card-header bg-light">
-                <h5 class="mb-0">Riwayat Ajuan Izin</h5>
+                <h5 class="mb-0">Riwayat Ajuan Karyawan</h5>
             </div>
             <div class="card-body">
                 @if ($permissions->count() > 0)
