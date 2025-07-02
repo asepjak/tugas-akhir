@@ -10,7 +10,8 @@ use App\Http\Controllers\{
     VerifikasiPerizinanController,
     RekapAbsensiController,
     AdminDashboardController,
-    UserManagementController
+    UserManagementController,
+    PimpinanDashboardController
 };
 
 Route::get('/', fn() => redirect('/login'));
@@ -20,7 +21,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Routes Pimpinan
 Route::middleware(['auth', 'role:pimpinan'])->prefix('pimpinan')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'pimpinan'])->name('pimpinan.dashboard');
+    Route::get('/dashboard', [PimpinanDashboardController::class, 'index'])->name('pimpinan.dashboard');
 
     // Profile untuk Pimpinan
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('pimpinan.profile.edit');

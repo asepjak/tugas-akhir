@@ -11,15 +11,15 @@ use App\Models\Absensi;
 
 class DashboardController extends Controller
 {
-    public function admin()
-    {
-        return view('dashboard.admin');
-    }
+    // public function admin()
+    // {
+    //     return view('dashboard.admin');
+    // }
 
-    public function pimpinan()
-    {
-        return view('dashboard.pimpinan');
-    }
+    // public function pimpinan()
+    // {
+    //     return view('dashboard.pimpinan');
+    // }
 
     public function karyawan(Request $request)
     {
