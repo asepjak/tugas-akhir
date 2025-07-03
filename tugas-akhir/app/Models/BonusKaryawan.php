@@ -30,19 +30,19 @@ class BonusKaryawan extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Scope untuk filter berdasarkan bulan dan tahun
+    // Scope filter bulan & tahun
     public function scopeByMonth($query, $bulan, $tahun)
     {
         return $query->where('bulan', $bulan)->where('tahun', $tahun);
     }
 
-    // Accessor untuk format rupiah
+    // Accessor format rupiah
     public function getFormattedBonusAttribute()
     {
         return 'Rp ' . number_format($this->jumlah_bonus, 0, ',', '.');
     }
 
-    // Accessor untuk nama bulan
+    // Accessor nama bulan
     public function getBulanNamaAttribute()
     {
         $bulanList = [

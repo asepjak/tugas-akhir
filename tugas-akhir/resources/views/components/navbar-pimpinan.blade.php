@@ -162,6 +162,13 @@
                     <i class="fas fa-tachometer-alt me-2"></i> <span class="d-none d-md-inline">Dashboard</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ route('pimpinan.bonus.index') }}"
+                    class="nav-link py-2 {{ request()->routeIs('pimpinan.bonus.index') ? 'active' : '' }}">
+                    <i class="fas fa-money-bill-wave me-2"></i>
+                    <span class="d-none d-md-inline">Bonus Karyawan</span>
+                </a>
+            </li>
             {{-- <li class="nav-item">
             <a href="{{ route('pimpinan.laporan') }}" class="nav-link py-2 {{ request()->routeIs('pimpinan.laporan') ? 'active' : '' }}">
                 <i class="fas fa-chart-pie me-2"></i> <span class="d-none d-md-inline">Laporan</span>

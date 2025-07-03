@@ -9,7 +9,7 @@
                     <div class="card-body p-4">
                         <div class="row align-items-center">
                             <div class="col-md-8">
-                                <h2 class="fw-bold mb-1">Selamat Datang, Admin! 👋</h2>
+                               <h2 class="fw-bold mb-1">Selamat Datang, Admin! 👋</h2>
                                 <p class="mb-0 opacity-75">Dashboard Sistem Absensi - {{ now()->format('l, d F Y') }}</p>
                             </div>
                             <div class="col-md-4 text-end d-none d-md-block">

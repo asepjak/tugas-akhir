@@ -12,12 +12,14 @@ class PimpinanDashboardController extends Controller
 {
     public function index(Request $request)
     {
+        // Parameter filter
         $bulan = $request->get('bulan', now()->format('m'));
         $tahun = $request->get('tahun', now()->format('Y'));
         $nama = $request->get('nama');
-        $statusFilter = $request->get('status');
-        $filterType = $request->get('filter_type', 'hari_ini'); // 'hari_ini' atau 'bulanan'
+        $status = $request->get('status');
+        $viewType = $request->get('view_type', 'monthly');
 
+        // Daftar bulan dan tahun
         $bulanList = [
             '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
             '04' => 'April', '05' => 'Mei', '06' => 'Juni',
@@ -26,174 +28,206 @@ class PimpinanDashboardController extends Controller
         ];
 
         $tahunList = [];
-        for ($i = 2020; $i <= now()->year + 1; $i++) {
+        for ($i = now()->year - 2; $i <= now()->year + 1; $i++) {
             $tahunList[$i] = $i;
         }
 
-        // Tentukan periode berdasarkan filter type
-        if ($filterType === 'bulanan') {
-            // Data absensi per bulan
-            $absensiQuery = Absensi::with('user')
-                ->whereMonth('created_at', $bulan)
-                ->whereYear('created_at', $tahun)
-                ->latest();
-        } else {
-            // Data absensi hari ini (default)
-            $absensiQuery = Absensi::with('user')
-                ->whereDate('created_at', Carbon::today())
-                ->latest();
-        }
+        // Data statistik
+        $statistik = $this->getStatistics($bulan, $tahun, $viewType);
 
-        // Filter berdasarkan nama
-        if ($nama) {
-            $absensiQuery->whereHas('user', function ($q) use ($nama) {
-                $q->where('name', 'like', '%' . $nama . '%');
-            });
-        }
+        // Data absensi
+        $absensiData = $this->getAttendanceData($bulan, $tahun, $nama, $status, $viewType);
 
-        // Filter berdasarkan status
-        if ($statusFilter === 'sudah') {
-            $absensiData = $absensiQuery->get();
-        } elseif ($statusFilter === 'belum') {
-            // Ambil user yang belum absen
-            if ($filterType === 'bulanan') {
-                $absenUserIds = Absensi::whereMonth('created_at', $bulan)
-                    ->whereYear('created_at', $tahun)
-                    ->pluck('user_id')
-                    ->unique()
-                    ->toArray();
-            } else {
-                $absenUserIds = Absensi::whereDate('created_at', Carbon::today())
-                    ->pluck('user_id')
-                    ->toArray();
-            }
+        // Data bulanan per karyawan
+        $monthlyAttendanceData = $this->getMonthlyAttendanceData($bulan, $tahun, $nama, $status);
 
-            $usersBelumAbsenQuery = User::where('role', 'karyawan')
-                ->whereNotIn('id', $absenUserIds);
+        // Data chart
+        $chartData = $this->getChartData($bulan, $tahun);
+        $pieChartData = $this->getPieChartData($bulan, $tahun, $viewType);
 
-            if ($nama) {
-                $usersBelumAbsenQuery->where('name', 'like', '%' . $nama . '%');
-            }
+        // Data bonus
+        $bonusData = BonusKaryawan::with('user')
+            ->where('bulan', $bulan)
+            ->where('tahun', $tahun)
+            ->get();
 
-            $usersBelumAbsen = $usersBelumAbsenQuery->get();
-            $absensiData = collect();
+        // Data aktivitas terbaru
+        $recentActivities = \App\Models\ActivityLog::with('user')
+            ->latest()
+            ->limit(5)
+            ->get();
 
-            foreach ($usersBelumAbsen as $u) {
-                $absensiData->push((object)[
-                    'user' => $u,
-                    'created_at' => null,
-                    'status' => 'belum absen'
-                ]);
-            }
-        } else {
-            $absensiData = $absensiQuery->get();
+        // Daftar karyawan untuk modal bonus
+        $employees = User::where('role', 'karyawan')->get();
 
-            // Tambahkan user yang belum absen
-            if ($filterType === 'bulanan') {
-                $absenUserIds = Absensi::whereMonth('created_at', $bulan)
-                    ->whereYear('created_at', $tahun)
-                    ->pluck('user_id')
-                    ->unique()
-                    ->toArray();
-            } else {
-                $absenUserIds = $absensiData->pluck('user_id')->toArray();
-            }
+        return view('dashboard.pimpinan', compact(
+            'bulanList',
+            'tahunList',
+            'bulan',
+            'tahun',
+            'nama',
+            'status',
+            'viewType',
+            'statistik',
+            'absensiData',
+            'monthlyAttendanceData',
+            'chartData',
+            'pieChartData',
+            'bonusData',
+            'recentActivities',
+            'employees'
+        ));
+    }
 
-            $usersBelumAbsenQuery = User::where('role', 'karyawan')
-                ->whereNotIn('id', $absenUserIds);
-
-            if ($nama) {
-                $usersBelumAbsenQuery->where('name', 'like', '%' . $nama . '%');
-            }
-
-            $usersBelumAbsen = $usersBelumAbsenQuery->get();
-
-            foreach ($usersBelumAbsen as $u) {
-                $absensiData->push((object)[
-                    'user' => $u,
-                    'created_at' => null,
-                    'status' => 'belum absen'
-                ]);
-            }
-        }
-
-        // Hitung statistik berdasarkan filter type
+    private function getStatistics($bulan, $tahun, $viewType)
+    {
         $totalKaryawan = User::where('role', 'karyawan')->count();
 
-        if ($filterType === 'bulanan') {
-            // Statistik bulanan
-            $hadirPeriode = Absensi::whereMonth('created_at', $bulan)
+        if ($viewType === 'monthly') {
+            $hadir = Absensi::whereMonth('created_at', $bulan)
                 ->whereYear('created_at', $tahun)
                 ->where('status', 'hadir')
                 ->count();
 
-            $terlambatPeriode = Absensi::whereMonth('created_at', $bulan)
+            $terlambat = Absensi::whereMonth('created_at', $bulan)
                 ->whereYear('created_at', $tahun)
                 ->where('status', 'terlambat')
                 ->count();
 
-            $izinPeriode = Absensi::whereMonth('created_at', $bulan)
+            $izin = Absensi::whereMonth('created_at', $bulan)
                 ->whereYear('created_at', $tahun)
                 ->where('status', 'izin')
                 ->count();
 
-            $sakitPeriode = Absensi::whereMonth('created_at', $bulan)
+            $sakit = Absensi::whereMonth('created_at', $bulan)
                 ->whereYear('created_at', $tahun)
                 ->where('status', 'sakit')
                 ->count();
 
-            $sudahAbsenPeriode = Absensi::whereMonth('created_at', $bulan)
+            $totalAbsen = Absensi::whereMonth('created_at', $bulan)
+                ->whereYear('created_at', $tahun)
+                ->count();
+
+            $uniqueUsers = Absensi::whereMonth('created_at', $bulan)
                 ->whereYear('created_at', $tahun)
                 ->distinct('user_id')
                 ->count('user_id');
 
-            $totalAbsenPeriode = $hadirPeriode + $terlambatPeriode + $izinPeriode + $sakitPeriode;
-
-            $statistik = [
+            return [
                 'total_karyawan' => $totalKaryawan,
-                'hadir' => $hadirPeriode,
-                'terlambat' => $terlambatPeriode,
-                'izin' => $izinPeriode,
-                'sakit' => $sakitPeriode,
-                'total_absen' => $totalAbsenPeriode,
-                'unique_users' => $sudahAbsenPeriode
+                'hadir' => $hadir,
+                'terlambat' => $terlambat,
+                'izin' => $izin,
+                'sakit' => $sakit,
+                'total_absen' => $totalAbsen,
+                'unique_users' => $uniqueUsers
             ];
         } else {
-            // Statistik hari ini
-            $hadirHariIni = Absensi::whereDate('created_at', Carbon::today())
+            $hadir = Absensi::whereDate('created_at', Carbon::today())
                 ->where('status', 'hadir')
                 ->count();
 
-            $terlambatHariIni = Absensi::whereDate('created_at', Carbon::today())
+            $terlambat = Absensi::whereDate('created_at', Carbon::today())
                 ->where('status', 'terlambat')
                 ->count();
 
-            $izinHariIni = Absensi::whereDate('created_at', Carbon::today())
+            $izin = Absensi::whereDate('created_at', Carbon::today())
                 ->where('status', 'izin')
                 ->count();
 
-            $sakitHariIni = Absensi::whereDate('created_at', Carbon::today())
+            $sakit = Absensi::whereDate('created_at', Carbon::today())
                 ->where('status', 'sakit')
                 ->count();
 
-            $sudahAbsenHariIni = Absensi::whereDate('created_at', Carbon::today())
+            $sudahAbsen = Absensi::whereDate('created_at', Carbon::today())
                 ->distinct('user_id')
-                ->count();
+                ->count('user_id');
 
-            $belumAbsenHariIni = $totalKaryawan - $sudahAbsenHariIni;
+            $belumAbsen = $totalKaryawan - $sudahAbsen;
 
-            $statistik = [
+            return [
                 'total_karyawan' => $totalKaryawan,
-                'hadir' => $hadirHariIni,
-                'terlambat' => $terlambatHariIni,
-                'izin' => $izinHariIni,
-                'sakit' => $sakitHariIni,
-                'belum_absen' => $belumAbsenHariIni,
-                'sudah_absen' => $sudahAbsenHariIni
+                'hadir' => $hadir,
+                'terlambat' => $terlambat,
+                'izin' => $izin,
+                'sakit' => $sakit,
+                'belum_absen' => $belumAbsen,
+                'sudah_absen' => $sudahAbsen
             ];
         }
+    }
 
-        // Grafik batang: absensi per tanggal dalam bulan
+    private function getAttendanceData($bulan, $tahun, $nama, $status, $viewType)
+    {
+        if ($viewType === 'monthly') {
+            return collect(); // Tidak digunakan di view monthly
+        }
+
+        $query = Absensi::with('user')
+            ->whereDate('created_at', Carbon::today())
+            ->latest();
+
+        if ($nama) {
+            $query->whereHas('user', function($q) use ($nama) {
+                $q->where('name', 'like', '%'.$nama.'%');
+            });
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        $absensiData = $query->get();
+
+        // Tambahkan yang belum absen jika tidak ada filter status
+        if (!$status) {
+            $absenUserIds = $absensiData->pluck('user_id')->toArray();
+            $usersBelumAbsen = User::where('role', 'karyawan')
+                ->whereNotIn('id', $absenUserIds);
+
+            if ($nama) {
+                $usersBelumAbsen->where('name', 'like', '%'.$nama.'%');
+            }
+
+            foreach ($usersBelumAbsen->get() as $user) {
+                $absensiData->push((object)[
+                    'user' => $user,
+                    'created_at' => null,
+                    'status' => 'belum absen'
+                ]);
+            }
+        }
+
+        return $absensiData;
+    }
+
+    private function getMonthlyAttendanceData($bulan, $tahun, $nama, $status)
+    {
+        $query = Absensi::whereMonth('created_at', $bulan)
+            ->whereYear('created_at', $tahun)
+            ->selectRaw('user_id, COUNT(*) as total_absen,
+                       SUM(CASE WHEN status = "hadir" THEN 1 ELSE 0 END) as hadir,
+                       SUM(CASE WHEN status = "terlambat" THEN 1 ELSE 0 END) as terlambat,
+                       SUM(CASE WHEN status = "izin" THEN 1 ELSE 0 END) as izin,
+                       SUM(CASE WHEN status = "sakit" THEN 1 ELSE 0 END) as sakit')
+            ->with('user')
+            ->groupBy('user_id');
+
+        if ($nama) {
+            $query->whereHas('user', function($q) use ($nama) {
+                $q->where('name', 'like', '%'.$nama.'%');
+            });
+        }
+
+        if ($status) {
+            $query->havingRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) > 0', [$status]);
+        }
+
+        return $query->orderByDesc('total_absen')->get();
+    }
+
+    private function getChartData($bulan, $tahun)
+    {
         $chartRaw = Absensi::selectRaw('DAY(created_at) as hari, COUNT(*) as total')
             ->whereMonth('created_at', $bulan)
             ->whereYear('created_at', $tahun)
@@ -203,55 +237,76 @@ class PimpinanDashboardController extends Controller
 
         $labels = [];
         $data = [];
-        foreach ($chartRaw as $row) {
-            $labels[] = 'Tgl ' . $row->hari;
-            $data[] = $row->total;
+
+        // Isi semua tanggal dalam bulan
+        $daysInMonth = Carbon::create($tahun, $bulan, 1)->daysInMonth;
+
+        for ($i = 1; $i <= $daysInMonth; $i++) {
+            $labels[] = 'Tgl ' . $i;
+            $found = $chartRaw->firstWhere('hari', $i);
+            $data[] = $found ? $found->total : 0;
         }
 
-        $chartData = [
+        return [
             'labels' => $labels,
             'data' => $data,
         ];
+    }
 
-        // Grafik pie chart status per orang
-        $queryPie = Absensi::with('user')
-            ->whereMonth('created_at', $bulan)
-            ->whereYear('created_at', $tahun);
+    private function getPieChartData($bulan, $tahun, $viewType)
+    {
+        if ($viewType === 'monthly') {
+            $hadir = Absensi::whereMonth('created_at', $bulan)
+                ->whereYear('created_at', $tahun)
+                ->where('status', 'hadir')
+                ->count();
 
-        if ($nama) {
-            $queryPie->whereHas('user', function ($q) use ($nama) {
-                $q->where('name', 'like', '%' . $nama . '%');
-            });
+            $terlambat = Absensi::whereMonth('created_at', $bulan)
+                ->whereYear('created_at', $tahun)
+                ->where('status', 'terlambat')
+                ->count();
+
+            $izin = Absensi::whereMonth('created_at', $bulan)
+                ->whereYear('created_at', $tahun)
+                ->where('status', 'izin')
+                ->count();
+
+            $sakit = Absensi::whereMonth('created_at', $bulan)
+                ->whereYear('created_at', $tahun)
+                ->where('status', 'sakit')
+                ->count();
+
+            $belum = User::where('role', 'karyawan')->count() -
+                     Absensi::whereMonth('created_at', $bulan)
+                     ->whereYear('created_at', $tahun)
+                     ->distinct('user_id')
+                     ->count('user_id');
+        } else {
+            $hadir = Absensi::whereDate('created_at', Carbon::today())
+                ->where('status', 'hadir')
+                ->count();
+
+            $terlambat = Absensi::whereDate('created_at', Carbon::today())
+                ->where('status', 'terlambat')
+                ->count();
+
+            $izin = Absensi::whereDate('created_at', Carbon::today())
+                ->where('status', 'izin')
+                ->count();
+
+            $sakit = Absensi::whereDate('created_at', Carbon::today())
+                ->where('status', 'sakit')
+                ->count();
+
+            $belum = User::where('role', 'karyawan')->count() -
+                     Absensi::whereDate('created_at', Carbon::today())
+                     ->distinct('user_id')
+                     ->count('user_id');
         }
 
-        $absensiFiltered = $queryPie->get();
-
-        $pieChart = [
-            'hadir' => $absensiFiltered->where('status', 'hadir')->count(),
-            'izin' => $absensiFiltered->where('status', 'izin')->count(),
-            'sakit' => $absensiFiltered->where('status', 'sakit')->count(),
-            'terlambat' => $absensiFiltered->where('status', 'terlambat')->count(),
+        return [
+            'labels' => ['Hadir', 'Terlambat', 'Izin', 'Sakit', 'Belum Absen'],
+            'data' => [$hadir, $terlambat, $izin, $sakit, $belum]
         ];
-
-        // Ambil bonus karyawan
-        $bonus = BonusKaryawan::with('user')
-            ->where('bulan', $bulan)
-            ->where('tahun', $tahun)
-            ->get();
-
-        return view('dashboard.pimpinan', compact(
-            'absensiData',
-            'chartData',
-            'bulanList',
-            'tahunList',
-            'bulan',
-            'tahun',
-            'nama',
-            'pieChart',
-            'statistik',
-            'statusFilter',
-            'filterType',
-            'bonus'
-        ));
     }
 }
