@@ -11,6 +11,21 @@
         </button>
     </div>
 
+    <!-- Alert Messages -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     <!-- Filter Bulan & Tahun -->
     <form method="GET" class="row g-2 mb-4">
         <div class="col-md-3">
@@ -85,36 +100,69 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="user_id" class="form-label">Pilih Karyawan</label>
-                            <select name="user_id" id="user_id" class="form-select" required>
-                                <option value="">-- Pilih --</option>
+                            <select name="user_id" id="user_id" class="form-select @error('user_id') is-invalid @enderror" required>
+                                <option value="">-- Pilih Karyawan --</option>
                                 @foreach ($employees as $emp)
-                                    <option value="{{ $emp->id }}">{{ $emp->name }}</option>
+                                    <option value="{{ $emp->id }}" {{ old('user_id') == $emp->id ? 'selected' : '' }}>
+                                        {{ $emp->name }}
+                                    </option>
                                 @endforeach
                             </select>
+                            @error('user_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-3">
                             <label for="bulan_input" class="form-label">Bulan</label>
-                            <select name="bulan" id="bulan_input" class="form-select" required>
+                            <select name="bulan" id="bulan_input" class="form-select @error('bulan') is-invalid @enderror" required>
                                 @foreach(['01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April','05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus','09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'] as $key => $bln)
-                                    <option value="{{ $key }}">{{ $bln }}</option>
+                                    <option value="{{ $key }}" {{ old('bulan', now()->format('m')) == $key ? 'selected' : '' }}>
+                                        {{ $bln }}
+                                    </option>
                                 @endforeach
                             </select>
+                            @error('bulan')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-3">
                             <label for="tahun_input" class="form-label">Tahun</label>
-                            <select name="tahun" id="tahun_input" class="form-select" required>
+                            <select name="tahun" id="tahun_input" class="form-select @error('tahun') is-invalid @enderror" required>
                                 @for ($i = now()->year - 3; $i <= now()->year + 1; $i++)
-                                    <option value="{{ $i }}">{{ $i }}</option>
+                                    <option value="{{ $i }}" {{ old('tahun', now()->format('Y')) == $i ? 'selected' : '' }}>
+                                        {{ $i }}
+                                    </option>
                                 @endfor
                             </select>
+                            @error('tahun')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="jumlah_bonus" class="form-label">Jumlah Bonus (Rp)</label>
-                            <input type="number" class="form-control" name="jumlah_bonus" id="jumlah_bonus" required min="0">
+                            <input type="number"
+                                   class="form-control @error('jumlah_bonus') is-invalid @enderror"
+                                   name="jumlah_bonus"
+                                   id="jumlah_bonus"
+                                   value="{{ old('jumlah_bonus') }}"
+                                   required
+                                   min="0"
+                                   step="1000"
+                                   placeholder="Contoh: 500000">
+                            @error('jumlah_bonus')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="keterangan" class="form-label">Keterangan (opsional)</label>
-                            <textarea name="keterangan" id="keterangan" class="form-control" rows="2"></textarea>
+                            <textarea name="keterangan"
+                                      id="keterangan"
+                                      class="form-control @error('keterangan') is-invalid @enderror"
+                                      rows="2"
+                                      placeholder="Contoh: Bonus prestasi kerja">{{ old('keterangan') }}</textarea>
+                            @error('keterangan')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -128,4 +176,13 @@
         </form>
     </div>
 </div>
+
+@if($errors->any())
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = new bootstrap.Modal(document.getElementById('modalTambahBonus'));
+        modal.show();
+    });
+</script>
+@endif
 @endsection
