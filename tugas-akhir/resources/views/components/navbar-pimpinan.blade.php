@@ -174,11 +174,13 @@
                 <i class="fas fa-chart-pie me-2"></i> <span class="d-none d-md-inline">Laporan</span>
             </a>
         </li> --}}
-            {{-- <li class="nav-item">
-            <a href="{{ route('pimpinan.profile') }}" class="nav-link py-2 {{ request()->routeIs('pimpinan.profile') ? 'active' : '' }}">
-                <i class="fas fa-user-circle me-2"></i> <span class="d-none d-md-inline">Profil</span>
-            </a>
-        </li> --}}
+            <li class="nav-item">
+                <a href="{{ route('pimpinan.profile.edit') }}"
+                    class="nav-link py-2 {{ request()->routeIs('pimpinan.profile.edit') ? 'active' : '' }}">
+                    <i class="fas fa-user-circle me-2"></i> <span class="d-none d-md-inline">Profil</span>
+                </a>
+
+            </li>
             <li class="nav-item">
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf

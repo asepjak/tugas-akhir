@@ -48,9 +48,8 @@
                     <div class="col-lg-2 col-md-4">
                         <label class="form-label small text-muted">Tampilkan</label>
                         <select name="view_type" class="form-select form-select-sm">
-                            <option value="monthly" {{ request('view_type') == 'monthly' ? 'selected' : '' }}>Total per
-                                Bulan</option>
-                            <option value="daily" {{ request('view_type') == 'daily' ? 'selected' : '' }}>Hari Ini</option>
+                            <option value="monthly" {{ $viewType == 'monthly' ? 'selected' : '' }}>Total per Bulan</option>
+                            <option value="daily" {{ $viewType == 'daily' ? 'selected' : '' }}>Hari Ini</option>
                         </select>
                     </div>
                     <div class="col-lg-2 col-md-6">
@@ -58,18 +57,21 @@
                         <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                             <input type="text" name="nama" class="form-control" placeholder="Nama karyawan"
-                                value="{{ request('nama') }}">
+                                value="{{ $nama }}">
                         </div>
                     </div>
                     <div class="col-lg-2 col-md-6">
                         <label class="form-label small text-muted">Status</label>
                         <select name="status" class="form-select form-select-sm">
                             <option value="">Semua Status</option>
-                            <option value="hadir" {{ request('status') == 'hadir' ? 'selected' : '' }}>Hadir</option>
-                            <option value="terlambat" {{ request('status') == 'terlambat' ? 'selected' : '' }}>Terlambat
-                            </option>
-                            <option value="izin" {{ request('status') == 'izin' ? 'selected' : '' }}>Izin</option>
-                            <option value="sakit" {{ request('status') == 'sakit' ? 'selected' : '' }}>Sakit</option>
+                            <option value="hadir" {{ $status == 'hadir' ? 'selected' : '' }}>Hadir</option>
+                            <option value="terlambat" {{ $status == 'terlambat' ? 'selected' : '' }}>Terlambat</option>
+                            <option value="izin" {{ $status == 'izin' ? 'selected' : '' }}>Izin</option>
+                            <option value="sakit" {{ $status == 'sakit' ? 'selected' : '' }}>Sakit</option>
+                            @if ($viewType == 'daily')
+                                <option value="belum_absen" {{ $status == 'belum_absen' ? 'selected' : '' }}>Belum Absen
+                                </option>
+                            @endif
                         </select>
                     </div>
                     <div class="col-lg-2 col-md-12">
@@ -102,7 +104,7 @@
                 </div>
             </div>
 
-            @if (request('view_type') == 'monthly' || !request('view_type'))
+            @if ($viewType == 'monthly')
                 <div class="col-xl-3 col-md-6">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-body">
@@ -115,7 +117,7 @@
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1 text-muted">Total Absen {{ $bulanList[$bulan] }}</h6>
                                     <h3 class="mb-0 fw-bold text-info">{{ $statistik['total_absen'] }}</h3>
-                                    <small class="text-muted">{{ $statistik['unique_users'] }} karyawan unik</small>
+                                    <small class="text-muted">{{ $statistik['unique_users'] }} karyawan</small>
                                 </div>
                             </div>
                         </div>
@@ -133,6 +135,8 @@
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1 text-muted">Hadir {{ $bulanList[$bulan] }}</h6>
                                     <h3 class="mb-0 fw-bold text-success">{{ $statistik['hadir'] }}</h3>
+                                    <small class="text-muted">{{ $statistik['attendance_rate'] }}% tingkat
+                                        kehadiran</small>
                                 </div>
                             </div>
                         </div>
@@ -150,6 +154,7 @@
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1 text-muted">Terlambat {{ $bulanList[$bulan] }}</h6>
                                     <h3 class="mb-0 fw-bold text-warning">{{ $statistik['terlambat'] }}</h3>
+                                    <small class="text-muted">{{ $statistik['avg_per_day'] }} avg/hari</small>
                                 </div>
                             </div>
                         </div>
@@ -168,6 +173,7 @@
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1 text-muted">Hadir Hari Ini</h6>
                                     <h3 class="mb-0 fw-bold text-success">{{ $statistik['hadir'] }}</h3>
+                                    <small class="text-muted">{{ $statistik['attendance_rate'] }}% dari total</small>
                                 </div>
                             </div>
                         </div>
@@ -185,6 +191,26 @@
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1 text-muted">Terlambat Hari Ini</h6>
                                     <h3 class="mb-0 fw-bold text-warning">{{ $statistik['terlambat'] }}</h3>
+                                    <small class="text-muted">Perlu perhatian</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-info bg-opacity-10 rounded-3 p-3">
+                                        <i class="fas fa-heart text-info fa-2x"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1 text-muted">Izin/Sakit Hari Ini</h6>
+                                    <h3 class="mb-0 fw-bold text-info">{{ $statistik['izin'] + $statistik['sakit'] }}</h3>
+                                    <small class="text-muted">{{ $statistik['izin'] }} izin, {{ $statistik['sakit'] }}
+                                        sakit</small>
                                 </div>
                             </div>
                         </div>
@@ -196,12 +222,13 @@
                             <div class="d-flex align-items-center">
                                 <div class="flex-shrink-0">
                                     <div class="bg-danger bg-opacity-10 rounded-3 p-3">
-                                        <i class="fas fa-times-circle text-danger fa-2x"></i>
+                                        <i class="fas fa-user-clock text-danger fa-2x"></i>
                                     </div>
                                 </div>
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1 text-muted">Belum Absen</h6>
                                     <h3 class="mb-0 fw-bold text-danger">{{ $statistik['belum_absen'] }}</h3>
+                                    <small class="text-muted">Perlu tindak lanjut</small>
                                 </div>
                             </div>
                         </div>
@@ -210,226 +237,124 @@
             @endif
         </div>
 
-        <!-- Additional Statistics for Monthly View -->
-        @if (request('view_type') == 'monthly' || !request('view_type'))
-            <div class="row g-4 mb-4">
-                <div class="col-xl-3 col-md-6">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="bg-info bg-opacity-10 rounded-3 p-3">
-                                        <i class="fas fa-file-medical text-info fa-2x"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1 text-muted">Izin {{ $bulanList[$bulan] }}</h6>
-                                    <h3 class="mb-0 fw-bold text-info">{{ $statistik['izin'] }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="bg-secondary bg-opacity-10 rounded-3 p-3">
-                                        <i class="fas fa-user-injured text-secondary fa-2x"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1 text-muted">Sakit {{ $bulanList[$bulan] }}</h6>
-                                    <h3 class="mb-0 fw-bold text-secondary">{{ $statistik['sakit'] }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="bg-primary bg-opacity-10 rounded-3 p-3">
-                                        <i class="fas fa-chart-line text-primary fa-2x"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1 text-muted">Rata-rata per Hari</h6>
-                                    <h3 class="mb-0 fw-bold text-primary">
-                                        {{ $statistik['total_absen'] > 0 ? round($statistik['total_absen'] / now()->day, 1) : 0 }}
-                                    </h3>
-                                    <small class="text-muted">absen per hari</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="bg-success bg-opacity-10 rounded-3 p-3">
-                                        <i class="fas fa-percentage text-success fa-2x"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1 text-muted">Tingkat Kehadiran</h6>
-                                    <h3 class="mb-0 fw-bold text-success">
-                                        {{ $statistik['total_absen'] > 0 ? round(($statistik['hadir'] / $statistik['total_absen']) * 100, 1) : 0 }}%
-                                    </h3>
-                                    <small class="text-muted">bulan ini</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        <!-- Charts Section -->
+        <!-- Charts Row -->
         <div class="row g-4 mb-4">
-            <div class="col-lg-8">
+            <!-- Line Chart -->
+            <div class="col-xl-8 col-lg-7">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-white border-0 pb-0">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-0 text-primary">
-                                <i class="fas fa-chart-bar me-2"></i>
-                                @if (request('view_type') == 'monthly' || !request('view_type'))
-                                    Grafik Absensi {{ $bulanList[$bulan] }} {{ $tahun }}
+                                <i class="fas fa-chart-line me-2"></i>
+                                Grafik Absensi
+                                @if ($viewType == 'monthly')
+                                    {{ $bulanList[$bulan] }} {{ $tahun }}
                                 @else
-                                    Grafik Absensi Hari Ini
+                                    Hari Ini
                                 @endif
                             </h6>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                                    data-bs-toggle="dropdown">
-                                    <i class="fas fa-ellipsis-v"></i>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="refreshChart()">
+                                    <i class="fas fa-sync-alt"></i>
                                 </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#"><i
-                                                class="fas fa-download me-2"></i>Download</a></li>
-                                    <li><a class="dropdown-item" href="#"><i
-                                                class="fas fa-share me-2"></i>Share</a></li>
-                                </ul>
                             </div>
                         </div>
                     </div>
                     <div class="card-body">
-                        <canvas id="barChart" style="height: 300px;"></canvas>
+                        <canvas id="attendanceChart" height="100"></canvas>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4">
+
+            <!-- Pie Chart -->
+            <div class="col-xl-4 col-lg-5">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-white border-0 pb-0">
                         <h6 class="mb-0 text-primary">
-                            <i class="fas fa-chart-pie me-2"></i>
-                            Distribusi Status
-                            @if (request('view_type') == 'monthly' || !request('view_type'))
-                                {{ $bulanList[$bulan] }}
-                            @else
-                                Hari Ini
-                            @endif
+                            <i class="fas fa-chart-pie me-2"></i>Distribusi Status
                         </h6>
                     </div>
                     <div class="card-body">
-                        <canvas id="pieChart" style="height: 300px;"></canvas>
+                        <canvas id="statusChart" height="200"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Monthly Attendance Summary Table -->
-        @if (request('view_type') == 'monthly' || !request('view_type'))
+        <!-- Data Tables -->
+        @if ($viewType == 'monthly')
+            <!-- Monthly Data Table -->
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-0">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="mb-0 text-primary">
-                            <i class="fas fa-calendar-alt me-2"></i>
-                            Ringkasan Absensi per Karyawan - {{ $bulanList[$bulan] }} {{ $tahun }}
-                            @if (request('status'))
-                                <span class="badge bg-primary ms-2">{{ ucfirst(request('status')) }}</span>
-                            @endif
+                            <i class="fas fa-table me-2"></i>Data Absensi Bulanan {{ $bulanList[$bulan] }}
+                            {{ $tahun }}
                         </h6>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-success" onclick="exportToExcel()">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-success btn-sm" onclick="exportExcel()">
                                 <i class="fas fa-file-excel me-1"></i> Excel
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="exportToPDF()">
+                            <button class="btn btn-outline-danger btn-sm" onclick="exportPdf()">
                                 <i class="fas fa-file-pdf me-1"></i> PDF
                             </button>
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0" id="monthlyAttendanceTable">
+                        <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="border-0 px-3 py-3 text-muted small">No</th>
-                                    <th class="border-0 px-3 py-3 text-muted small">Nama Karyawan</th>
-                                    <th class="border-0 px-3 py-3 text-muted small">Total Absen</th>
-                                    <th class="border-0 px-3 py-3 text-muted small">Hadir</th>
-                                    <th class="border-0 px-3 py-3 text-muted small">Terlambat</th>
-                                    <th class="border-0 px-3 py-3 text-muted small">Izin</th>
-                                    <th class="border-0 px-3 py-3 text-muted small">Sakit</th>
-                                    <th class="border-0 px-3 py-3 text-muted small">Persentase</th>
+                                    <th>No</th>
+                                    <th>Nama Karyawan</th>
+                                    <th class="text-center">Total Absen</th>
+                                    <th class="text-center">Hadir</th>
+                                    <th class="text-center">Terlambat</th>
+                                    <th class="text-center">Izin</th>
+                                    <th class="text-center">Sakit</th>
+                                    <th class="text-center">Persentase</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($monthlyAttendanceData as $index => $data)
+                                @forelse($monthlyAttendanceData as $key => $data)
                                     <tr>
-                                        <td class="px-3 py-3 text-muted">{{ $index + 1 }}</td>
-                                        <td class="px-3 py-3">
+                                        <td>{{ $key + 1 }}</td>
+                                        <td>
                                             <div class="d-flex align-items-center">
-                                                <div
-                                                    class="avatar-sm bg-primary bg-opacity-10 rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                <div class="avatar avatar-sm bg-primary bg-opacity-10 rounded-circle me-2">
                                                     <i class="fas fa-user text-primary"></i>
                                                 </div>
                                                 <span class="fw-medium">{{ $data['name'] }}</span>
                                             </div>
                                         </td>
-                                        <td class="px-3 py-3">
-                                            <span class="fw-bold text-primary">{{ $data['total_absen'] }}</span>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary">{{ $data['total_absen'] }}</span>
                                         </td>
-                                        <td class="px-3 py-3">
-                                            <span class="text-success fw-medium">{{ $data['hadir'] }}</span>
+                                        <td class="text-center">
+                                            <span class="badge bg-success">{{ $data['hadir'] }}</span>
                                         </td>
-                                        <td class="px-3 py-3">
-                                            <span class="text-warning fw-medium">{{ $data['terlambat'] }}</span>
+                                        <td class="text-center">
+                                            <span class="badge bg-warning">{{ $data['terlambat'] }}</span>
                                         </td>
-                                        <td class="px-3 py-3">
-                                            <span class="text-info fw-medium">{{ $data['izin'] }}</span>
+                                        <td class="text-center">
+                                            <span class="badge bg-info">{{ $data['izin'] }}</span>
                                         </td>
-                                        <td class="px-3 py-3">
-                                            <span class="text-secondary fw-medium">{{ $data['sakit'] }}</span>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary">{{ $data['sakit'] }}</span>
                                         </td>
-                                        <td class="px-3 py-3">
-                                            @php
-                                                $percentage =
-                                                    $data['total_absen'] > 0
-                                                        ? round(($data['hadir'] / $data['total_absen']) * 100, 1)
-                                                        : 0;
-                                            @endphp
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress me-2" style="width: 60px; height: 8px;">
-                                                    <div class="progress-bar bg-{{ $percentage >= 80 ? 'success' : ($percentage >= 60 ? 'warning' : 'danger') }}"
-                                                        role="progressbar" style="width: {{ $percentage }}%"></div>
+                                        <td class="text-center">
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" role="progressbar"
+                                                    style="width: {{ $data['percentage'] }}%">
+                                                    {{ $data['percentage'] }}%
                                                 </div>
-                                                <span
-                                                    class="text-{{ $percentage >= 80 ? 'success' : ($percentage >= 60 ? 'warning' : 'danger') }} fw-medium">
-                                                    {{ $percentage }}%
-                                                </span>
                                             </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-5 text-muted">
+                                        <td colspan="9" class="text-center text-muted py-4">
                                             <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
                                             Tidak ada data absensi untuk bulan ini
                                         </td>
@@ -441,89 +366,92 @@
                 </div>
             </div>
         @else
-            <!-- Daily Attendance Table -->
+            <!-- Daily Data Table -->
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-0">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="mb-0 text-primary">
-                            <i class="fas fa-table me-2"></i>
-                            Daftar Absensi Hari Ini
-                            @if (request('status'))
-                                <span class="badge bg-primary ms-2">{{ ucfirst(request('status')) }}</span>
-                            @endif
+                            <i class="fas fa-table me-2"></i>Data Absensi Hari Ini
+                            ({{ \Carbon\Carbon::today()->format('d F Y') }})
                         </h6>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-success" onclick="exportToExcel()">
-                                <i class="fas fa-file-excel me-1"></i> Excel
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="exportToPDF()">
-                                <i class="fas fa-file-pdf me-1"></i> PDF
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-success btn-sm" onclick="exportDaily()">
+                                <i class="fas fa-download me-1"></i> Export
                             </button>
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0" id="dailyAttendanceTable">
+                        <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="border-0 px-3 py-3 text-muted small">No</th>
-                                    <th class="border-0 px-3 py-3 text-muted small">Nama Karyawan</th>
-                                    <th class="border-0 px-3 py-3 text-muted small">Status</th>
-                                    <th class="border-0 px-3 py-3 text-muted small">Waktu Absen</th>
+                                    <th>No</th>
+                                    <th>Nama Karyawan</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Waktu</th>
+                                    <th class="text-center">Keterangan</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($absensiData as $index => $absen)
+                                @forelse($absensiData as $key => $absensi)
                                     <tr>
-                                        <td class="px-3 py-3 text-muted">{{ $index + 1 }}</td>
-                                        <td class="px-3 py-3">
+                                        <td>{{ $key + 1 }}</td>
+                                        <td>
                                             <div class="d-flex align-items-center">
-                                                <div
-                                                    class="avatar-sm bg-primary bg-opacity-10 rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                <div class="avatar avatar-sm bg-primary bg-opacity-10 rounded-circle me-2">
                                                     <i class="fas fa-user text-primary"></i>
                                                 </div>
-                                                <span class="fw-medium">{{ $absen->user->name ?? '-' }}</span>
+                                                <span class="fw-medium">{{ $absensi->user->name }}</span>
                                             </div>
                                         </td>
-                                        <td class="px-3 py-3">
-                                            @if ($absen->status == 'hadir')
-                                                <span
-                                                    class="badge bg-success-subtle text-success border border-success-subtle">
-                                                    <i class="fas fa-check-circle me-1"></i>Hadir
+                                        <td class="text-center">
+                                            @if ($absensi->status == 'hadir')
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Hadir
                                                 </span>
-                                            @elseif($absen->status == 'terlambat')
-                                                <span
-                                                    class="badge bg-warning-subtle text-warning border border-warning-subtle">
+                                            @elseif($absensi->status == 'terlambat')
+                                                <span class="badge bg-warning">
                                                     <i class="fas fa-clock me-1"></i>Terlambat
                                                 </span>
-                                            @elseif($absen->status == 'izin')
-                                                <span class="badge bg-info-subtle text-info border border-info-subtle">
-                                                    <i class="fas fa-file-medical me-1"></i>Izin
+                                            @elseif($absensi->status == 'izin')
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-calendar-times me-1"></i>Izin
                                                 </span>
-                                            @elseif($absen->status == 'sakit')
-                                                <span
-                                                    class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                            @elseif($absensi->status == 'sakit')
+                                                <span class="badge bg-secondary">
                                                     <i class="fas fa-user-injured me-1"></i>Sakit
                                                 </span>
                                             @else
-                                                <span
-                                                    class="badge bg-danger-subtle text-danger border border-danger-subtle">
-                                                    <i class="fas fa-times-circle me-1"></i>Belum Absen
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>Belum Absen
                                                 </span>
                                             @endif
                                         </td>
-                                        <td class="px-3 py-3">
-                                            <span class="text-muted">
-                                                {{ $absen->created_at ? $absen->created_at->format('H:i:s') : '-' }}
-                                            </span>
+                                        <td class="text-center">
+                                            @if ($absensi->created_at)
+                                                <span class="text-muted">{{ $absensi->created_at->format('H:i:s') }}</span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-center">
+                                            @if ($absensi->status == 'belum_absen')
+                                                <span class="text-danger">
+                                                    <i class="fas fa-exclamation-circle me-1"></i>Perlu Tindak Lanjut
+                                                </span>
+                                            @else
+                                                <span class="text-success">
+                                                    <i class="fas fa-check-circle me-1"></i>Tercatat
+                                                </span>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center py-5 text-muted">
+                                        <td colspan="5" class="text-center text-muted py-4">
                                             <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
-                                            Tidak ada data absensi hari ini
+                                            Tidak ada data absensi untuk hari ini
                                         </td>
                                     </tr>
                                 @endforelse
@@ -534,138 +462,114 @@
             </div>
         @endif
 
-        <!-- Bonus Table -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 text-primary">
-                        <i class="fas fa-gift me-2"></i>Bonus Karyawan {{ $bulanList[$bulan] }} {{ $tahun }}
-                    </h6>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" onclick="addBonus()">
-                            <i class="fas fa-plus me-1"></i> Tambah Bonus
-                        </button>
+        <!-- To-Do List Section -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 text-primary">
+                                <i class="fas fa-tasks me-2"></i>To-Do List
+                            </h6>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#todoModal">
+                                <i class="fas fa-plus me-1"></i> Tambah Task
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Task</th>
+                                        <th>Keterangan</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="todoTableBody">
+                                    <!-- Data akan diisi via JavaScript -->
+                                    <tr id="noTasks" style="display: none;">
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <i class="fas fa-tasks fa-2x mb-2 d-block"></i>
+                                            Belum ada task
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="border-0 px-3 py-3 text-muted small">No</th>
-                                <th class="border-0 px-3 py-3 text-muted small">Nama Karyawan</th>
-                                <th class="border-0 px-3 py-3 text-muted small">Jumlah Bonus</th>
-                                <th class="border-0 px-3 py-3 text-muted small">Keterangan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($bonusData as $index => $bonus)
-                                <tr>
-                                    <td class="px-3 py-3 text-muted">{{ $index + 1 }}</td>
-                                    <td class="px-3 py-3">
-                                        <div class="d-flex align-items-center">
-                                            <div
-                                                class="avatar-sm bg-primary bg-opacity-10 rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                                <i class="fas fa-user text-primary"></i>
-                                            </div>
-                                            <span class="fw-medium">{{ $bonus->user->name ?? '-' }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-3 py-3">
-                                        <span class="fw-bold text-success">Rp
-                                            {{ number_format($bonus->amount, 0, ',', '.') }}</span>
-                                    </td>
-                                    <td class="px-3 py-3">
-                                        <span class="text-muted">{{ $bonus->description ?? '-' }}</span>
-                                    </td>
-                                </tr>
+
+            <!-- Recent Activities -->
+            <div class="col-xl-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <h6 class="mb-0 text-primary">
+                            <i class="fas fa-history me-2"></i>Aktivitas Terbaru
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            @forelse($recentActivities as $activity)
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-primary"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">{{ $activity->user->name }}</h6>
+                                        <p class="timeline-text">{{ $activity->description }}</p>
+                                        <small class="text-muted">{{ $activity->created_at->diffForHumans() }}</small>
+                                    </div>
+                                </div>
                             @empty
-                                <tr>
-                                    <td colspan="4" class="text-center py-5 text-muted">
-                                        <i class="fas fa-gift fa-2x mb-2 d-block"></i>
-                                        Belum ada bonus untuk bulan ini
-                                    </td>
-                                </tr>
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-clock fa-2x mb-2 d-block"></i>
+                                    Belum ada aktivitas terbaru
+                                </div>
                             @endforelse
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Activity Log -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h6 class="mb-0 text-primary">
-                    <i class="fas fa-history me-2"></i>Aktivitas Terbaru
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="timeline">
-                    @forelse($recentActivities as $activity)
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-{{ $activity->type == 'login' ? 'success' : 'primary' }}">
-                                <i class="fas fa-{{ $activity->type == 'login' ? 'sign-in-alt' : 'clock' }}"></i>
+        <!-- To-Do Modal -->
+        <div class="modal fade" id="todoModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-plus-circle me-2"></i>Tambah Task Baru
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="todoForm">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Judul Task</label>
+                                <input type="text" name="task_title" class="form-control"
+                                    placeholder="Apa yang perlu dilakukan?" required>
                             </div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">{{ $activity->user->name ?? 'Unknown' }}</h6>
-                                <p class="text-muted mb-1">{{ $activity->description }}</p>
-                                <small class="text-muted">{{ $activity->created_at->diffForHumans() }}</small>
+                            <div class="mb-3">
+                                <label class="form-label">Keterangan</label>
+                                <textarea name="task_description" class="form-control" rows="3" placeholder="Detail task..."></textarea>
                             </div>
                         </div>
-                    @empty
-                        <div class="text-center py-4 text-muted">
-                            <i class="fas fa-history fa-2x mb-2 d-block"></i>
-                            Belum ada aktivitas terbaru
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Simpan Task
+                            </button>
                         </div>
-                    @endforelse
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+@endsection
 
-    <!-- Add Bonus Modal -->
-    <div class="modal fade" id="addBonusModal" tabindex="-1" aria-labelledby="addBonusModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addBonusModalLabel">Tambah Bonus Karyawan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="addBonusForm">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="employee_id" class="form-label">Karyawan</label>
-                            <select class="form-select" id="employee_id" name="employee_id" required>
-                                <option value="">Pilih Karyawan</option>
-                                @foreach ($employees as $employee)
-                                    <option value="{{ $employee->id }}">{{ $employee->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="bonus_amount" class="form-label">Jumlah Bonus</label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rp</span>
-                                <input type="number" class="form-control" id="bonus_amount" name="amount" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="bonus_description" class="form-label">Keterangan</label>
-                            <textarea class="form-control" id="bonus_description" name="description" rows="3"
-                                placeholder="Keterangan bonus..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Tambah Bonus</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
+@push('styles')
     <style>
         .timeline {
             position: relative;
@@ -675,11 +579,11 @@
         .timeline::before {
             content: '';
             position: absolute;
-            left: 12px;
+            left: 15px;
             top: 0;
             bottom: 0;
             width: 2px;
-            background: #dee2e6;
+            background: #e9ecef;
         }
 
         .timeline-item {
@@ -689,190 +593,256 @@
 
         .timeline-marker {
             position: absolute;
-            left: -18px;
-            width: 24px;
-            height: 24px;
+            left: -22px;
+            top: 0;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 10px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #e9ecef;
         }
 
         .timeline-content {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 3px solid #007bff;
+            padding-left: 20px;
         }
 
-        .avatar-sm {
+        .timeline-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .timeline-text {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .avatar {
             width: 32px;
             height: 32px;
-            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .progress {
+            background-color: #f8f9fa;
+        }
+
+        .table th {
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 6px 10px;
+        }
+
+        .task-completed {
+            text-decoration: line-through;
+            opacity: 0.7;
         }
 
         @media print {
-            .no-print {
-                display: none !important;
-            }
 
-            .card {
-                border: 1px solid #dee2e6 !important;
-                box-shadow: none !important;
+            .btn,
+            .card-header .btn-group {
+                display: none !important;
             }
         }
     </style>
+@endpush
 
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Charts
-            initializeCharts();
-
-            // Auto refresh every 5 minutes
-            setInterval(function() {
-                if ({{ request('view_type') == 'daily' ? 'true' : 'false' }}) {
-                    location.reload();
+        // Line Chart
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: @json($chartData['labels']),
+                datasets: [{
+                    label: 'Total Absensi',
+                    data: @json($chartData['data']),
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
                 }
-            }, 300000);
+            }
         });
 
-        function initializeCharts() {
-            // Bar Chart
-            const barCtx = document.getElementById('barChart').getContext('2d');
-            new Chart(barCtx, {
-                type: 'bar',
-                data: {
-                    labels: @json($chartData['labels']),
-                    datasets: [{
-                        label: 'Jumlah Absensi',
-                        data: @json($chartData['data']),
-                        backgroundColor: [
-                            'rgba(54, 162, 235, 0.8)',
-                            'rgba(255, 99, 132, 0.8)',
-                            'rgba(255, 206, 86, 0.8)',
-                            'rgba(75, 192, 192, 0.8)',
-                            'rgba(153, 102, 255, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgba(54, 162, 235, 1)',
-                            'rgba(255, 99, 132, 1)',
-                            'rgba(255, 206, 86, 1)',
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(153, 102, 255, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
+        // Pie Chart
+        const ctxPie = document.getElementById('statusChart').getContext('2d');
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: @json($pieChartData['labels']),
+                datasets: [{
+                    data: @json($pieChartData['data']),
+                    backgroundColor: @json($pieChartData['colors']),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
                         }
                     }
                 }
-            });
+            }
+        });
 
-            // Pie Chart
-            const pieCtx = document.getElementById('pieChart').getContext('2d');
-            new Chart(pieCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: @json($pieChartData['labels']),
-                    datasets: [{
-                        data: @json($pieChartData['data']),
-                        backgroundColor: [
-                            'rgba(40, 167, 69, 0.8)',
-                            'rgba(255, 193, 7, 0.8)',
-                            'rgba(23, 162, 184, 0.8)',
-                            'rgba(108, 117, 125, 0.8)',
-                            'rgba(220, 53, 69, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgba(40, 167, 69, 1)',
-                            'rgba(255, 193, 7, 1)',
-                            'rgba(23, 162, 184, 1)',
-                            'rgba(108, 117, 125, 1)',
-                            'rgba(220, 53, 69, 1)'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
-                            }
-                        }
-                    }
+        // To-Do List Functionality
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+        function renderTodos() {
+            const tbody = document.getElementById('todoTableBody');
+            const noTasksRow = document.getElementById('noTasks');
+
+            // Clear existing rows except the "no tasks" row
+            while (tbody.firstChild && tbody.firstChild !== noTasksRow) {
+                tbody.removeChild(tbody.firstChild);
+            }
+
+            if (todos.length === 0) {
+                noTasksRow.style.display = '';
+                return;
+            }
+
+            noTasksRow.style.display = 'none';
+
+            todos.forEach((todo, index) => {
+                const tr = document.createElement('tr');
+                if (todo.completed) {
+                    tr.classList.add('task-completed');
                 }
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${todo.title}</td>
+                    <td>${todo.description || '-'}</td>
+                    <td class="text-center">
+                        <span class="badge ${todo.completed ? 'bg-success' : 'bg-warning'}">
+                            ${todo.completed ? 'Selesai' : 'Pending'}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm ${todo.completed ? 'btn-outline-secondary' : 'btn-outline-success'}"
+                            onclick="toggleTodo(${index})">
+                            <i class="fas ${todo.completed ? 'fa-undo' : 'fa-check'}"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTodo(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.insertBefore(tr, noTasksRow);
             });
         }
 
-        function addBonus() {
-            const modal = new bootstrap.Modal(document.getElementById('addBonusModal'));
-            modal.show();
-        }
-
-        function exportToExcel() {
-            const table = document.querySelector('table');
-            const wb = XLSX.utils.table_to_book(table, {
-                sheet: "Absensi"
+        function addTodo(title, description) {
+            todos.push({
+                title,
+                description,
+                completed: false,
+                createdAt: new Date().toISOString()
             });
-            XLSX.writeFile(wb, 'absensi_' + new Date().toISOString().split('T')[0] + '.xlsx');
+            saveTodos();
         }
 
-        function exportToPDF() {
-            window.print();
+        function toggleTodo(index) {
+            todos[index].completed = !todos[index].completed;
+            saveTodos();
         }
 
-        // Handle bonus form submission
-        document.getElementById('addBonusForm').addEventListener('submit', function(e) {
+        function deleteTodo(index) {
+            if (confirm('Apakah Anda yakin ingin menghapus task ini?')) {
+                todos.splice(index, 1);
+                saveTodos();
+            }
+        }
+
+        function saveTodos() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+            renderTodos();
+        }
+
+        // Form submission
+        document.getElementById('todoForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const title = this.task_title.value;
+            const description = this.task_description.value;
 
-            const formData = new FormData(this);
+            addTodo(title, description);
 
-            fetch('{{ route('pimpinan.bonus.store') }}', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Terjadi kesalahan saat menambah bonus');
-                });
+            // Reset form and close modal
+            this.reset();
+            bootstrap.Modal.getInstance(document.getElementById('todoModal')).hide();
         });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', renderTodos);
+
+        // Export Functions
+        function exportExcel() {
+            const params = new URLSearchParams(window.location.search);
+            params.set('export', 'excel');
+            window.location.href = '{{ route('pimpinan.dashboard') }}?' + params.toString();
+        }
+
+        function exportPdf() {
+            const params = new URLSearchParams(window.location.search);
+            params.set('export', 'pdf');
+            window.location.href = '{{ route('pimpinan.dashboard') }}?' + params.toString();
+        }
+
+        function exportDaily() {
+            const params = new URLSearchParams(window.location.search);
+            params.set('export', 'daily');
+            window.location.href = '{{ route('pimpinan.dashboard') }}?' + params.toString();
+        }
+
+        function refreshChart() {
+            location.reload();
+        }
     </script>
-
-    <!-- Include Chart.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <!-- Include XLSX for Excel export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-@endsection
+@endpush

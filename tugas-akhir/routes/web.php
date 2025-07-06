@@ -25,9 +25,6 @@ Route::middleware(['auth', 'role:pimpinan'])->prefix('pimpinan')->group(function
     Route::get('/dashboard', [PimpinanDashboardController::class, 'index'])->name('pimpinan.dashboard');
     Route::post('/bonus/store', [BonusController::class, 'store'])->name('pimpinan.bonus.store');
     Route::get('/bonus', [BonusController::class, 'index'])->name('pimpinan.bonus.index');
-
-
-
     // Profile untuk Pimpinan
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('pimpinan.profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('pimpinan.profile.update');
