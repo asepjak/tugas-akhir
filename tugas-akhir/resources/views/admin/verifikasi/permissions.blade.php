@@ -25,8 +25,8 @@
                                 <th>Alasan</th>
                                 <th>Mulai</th>
                                 <th>Selesai</th>
-                                <th>Status</th>
                                 <th>Surat</th>
+                                <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -40,18 +40,9 @@
                                     <td>{{ \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') }}</td>
                                     <td>{{ \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') }}</td>
                                     <td>
-                                        @if ($item->status === 'Menunggu')
-                                            <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Menunggu</span>
-                                        @elseif ($item->status === 'Disetujui')
-                                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>Disetujui</span>
-                                        @else
-                                            <span class="badge bg-danger"><i class="fas fa-times me-1"></i>Ditolak</span>
-                                        @endif
-                                    </td>
-                                    <td>
                                         @if ($item->file_surat)
                                             <a href="{{ asset('storage/' . $item->file_surat) }}" target="_blank"
-                                               class="btn btn-sm btn-outline-primary">
+                                                class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-file-alt me-1"></i>Lihat
                                             </a>
                                         @else
@@ -59,25 +50,39 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @if ($item->status === 'Menunggu')
-                                            <div class="d-flex flex-column gap-1">
-                                                <form action="{{ route('permissions.updateStatus', $item->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <input type="hidden" name="status" value="Disetujui">
-                                                    <button type="submit" class="btn btn-sm btn-success w-100">
-                                                        <i class="fas fa-check me-1"></i>Setujui
-                                                    </button>
-                                                </form>
-                                                <form action="{{ route('permissions.updateStatus', $item->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <input type="hidden" name="status" value="Ditolak">
-                                                    <button type="submit" class="btn btn-sm btn-danger w-100">
-                                                        <i class="fas fa-times me-1"></i>Tolak
-                                                    </button>
-                                                </form>
-                                            </div>
+                                        <span class="badge
+                                            @if($item->status == 'Menunggu') bg-warning
+                                            @elseif($item->status == 'Disetujui') bg-success
+                                            @else bg-danger @endif">
+                                            {{ $item->status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if ($item->status == 'Menunggu')
+                                            @if (in_array($item->keterangan, ['Sakit', 'Izin']))
+                                                <div class="d-flex flex-column gap-1">
+                                                    <form action="{{ route('permissions.updateStatus', $item->id) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <input type="hidden" name="status" value="Disetujui">
+                                                        <button type="submit" class="btn btn-sm btn-success w-100">
+                                                            <i class="fas fa-check me-1"></i>Setujui
+                                                        </button>
+                                                    </form>
+                                                    <form action="{{ route('permissions.updateStatus', $item->id) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <input type="hidden" name="status" value="Ditolak">
+                                                        <button type="submit" class="btn btn-sm btn-danger w-100">
+                                                            <i class="fas fa-times me-1"></i>Tolak
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            @else
+                                                <em class="text-muted">Menunggu verifikasi pimpinan</em>
+                                            @endif
                                         @else
                                             <span class="text-muted"><i class="fas fa-check-circle me-1"></i>{{ $item->status }}</span>
                                         @endif

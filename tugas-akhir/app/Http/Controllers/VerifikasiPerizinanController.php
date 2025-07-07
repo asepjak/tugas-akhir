@@ -38,6 +38,18 @@ class VerifikasiPerizinanController extends Controller
 
         return redirect()->route('verifikasi.index')->with('success', 'Data perizinan berhasil ditambahkan.');
     }
+    // public function updateStatus(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'status' => 'required|in:Disetujui,Ditolak',
+    //     ]);
+
+    //     $permission = Permission::findOrFail($id);
+    //     $permission->status = $request->status;
+    //     $permission->save();
+
+    //     return redirect()->route('verifikasi.permissions')->with('success', 'Status izin berhasil diperbarui.');
+    // }
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -45,11 +57,18 @@ class VerifikasiPerizinanController extends Controller
         ]);
 
         $permission = Permission::findOrFail($id);
+
+        // Hanya izinkan jika keterangan adalah Sakit atau Izin
+        if (!in_array($permission->keterangan, ['Sakit', 'Izin'])) {
+            return redirect()->route('verifikasi.permissions')->with('error', 'Hanya izin Sakit dan Izin yang dapat diverifikasi oleh admin.');
+        }
+
         $permission->status = $request->status;
         $permission->save();
 
         return redirect()->route('verifikasi.permissions')->with('success', 'Status izin berhasil diperbarui.');
     }
+
 
 
 

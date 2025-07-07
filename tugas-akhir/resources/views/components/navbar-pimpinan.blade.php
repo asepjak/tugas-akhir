@@ -169,6 +169,14 @@
                     <span class="d-none d-md-inline">Bonus Karyawan</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ route('pimpinan.permissions.index') }}"
+                    class="nav-link py-2 {{ request()->routeIs('pimpinan.permissions.index') ? 'active' : '' }}">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span class="d-none d-md-inline">Approval Cuti</span>
+                </a>
+            </li>
+
             {{-- <li class="nav-item">
             <a href="{{ route('pimpinan.laporan') }}" class="nav-link py-2 {{ request()->routeIs('pimpinan.laporan') ? 'active' : '' }}">
                 <i class="fas fa-chart-pie me-2"></i> <span class="d-none d-md-inline">Laporan</span>
@@ -182,13 +190,16 @@
 
             </li>
             <li class="nav-item">
-                <form action="{{ route('logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST" class="d-block">
                     @csrf
-                    <button type="submit" class="nav-link text-danger py-2 w-100 text-start">
-                        <i class="fas fa-sign-out-alt me-2"></i> <span class="d-none d-md-inline">Logout</span>
+                    <button type="submit" class="btn btn-link nav-link py-2 w-100 text-start text-danger"
+                        style="text-decoration: none;">
+                        <i class="fas fa-sign-out-alt me-2"></i>
+                        <span class="d-none d-md-inline">Logout</span>
                     </button>
                 </form>
             </li>
+
         </ul>
     </div>
 

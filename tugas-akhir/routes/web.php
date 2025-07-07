@@ -12,7 +12,8 @@ use App\Http\Controllers\{
     AdminDashboardController,
     UserManagementController,
     PimpinanDashboardController,
-    BonusController
+    BonusController,
+    PermissionApprovalController
 };
 
 Route::get('/', fn() => redirect('/login'));
@@ -25,6 +26,8 @@ Route::middleware(['auth', 'role:pimpinan'])->prefix('pimpinan')->group(function
     Route::get('/dashboard', [PimpinanDashboardController::class, 'index'])->name('pimpinan.dashboard');
     Route::post('/bonus/store', [BonusController::class, 'store'])->name('pimpinan.bonus.store');
     Route::get('/bonus', [BonusController::class, 'index'])->name('pimpinan.bonus.index');
+    Route::get('/permissions', [PermissionApprovalController::class, 'index'])->name('pimpinan.permissions.index');
+    Route::put('/permissions/{id}/status', [PermissionApprovalController::class, 'updateStatus'])->name('pimpinan.permissions.updateStatus');
     // Profile untuk Pimpinan
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('pimpinan.profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('pimpinan.profile.update');

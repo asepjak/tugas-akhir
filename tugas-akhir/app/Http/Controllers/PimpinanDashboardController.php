@@ -101,7 +101,9 @@ class PimpinanDashboardController extends Controller
             $query = Absensi::whereMonth('created_at', $bulan)
                 ->whereYear('created_at', $tahun);
 
-            $hadir = (clone $query)->where('status', 'hadir')->count();
+            // Hitung hadir total (termasuk terlambat sebagai bagian dari hadir)
+            $hadirTotal = (clone $query)->whereIn('status', ['hadir', 'terlambat'])->count();
+            $hadirTepat = (clone $query)->where('status', 'hadir')->count();
             $terlambat = (clone $query)->where('status', 'terlambat')->count();
             $izin = (clone $query)->where('status', 'izin')->count();
             $sakit = (clone $query)->where('status', 'sakit')->count();
@@ -116,20 +118,24 @@ class PimpinanDashboardController extends Controller
 
             return [
                 'total_karyawan' => $totalKaryawan,
-                'hadir' => $hadir,
-                'terlambat' => $terlambat,
+                'hadir_total' => $hadirTotal, // Total hadir (termasuk terlambat)
+                'hadir_tepat' => $hadirTepat, // Hadir tepat waktu
+                'hadir' => $hadirTotal, // ADD THIS LINE - for compatibility with view
+                'terlambat' => $terlambat, // Terlambat saja
                 'izin' => $izin,
                 'sakit' => $sakit,
                 'total_absen' => $totalAbsen,
                 'unique_users' => $uniqueUsers,
                 'working_days' => $workingDays,
                 'avg_per_day' => $workingDays > 0 ? round($totalAbsen / $workingDays, 1) : 0,
-                'attendance_rate' => $totalAbsen > 0 ? round(($hadir / $totalAbsen) * 100, 1) : 0
+                'attendance_rate' => $totalAbsen > 0 ? round(($hadirTotal / $totalAbsen) * 100, 1) : 0
             ];
         } else {
             $query = Absensi::whereDate('created_at', Carbon::today());
 
-            $hadir = (clone $query)->where('status', 'hadir')->count();
+            // Hitung hadir total (termasuk terlambat sebagai bagian dari hadir)
+            $hadirTotal = (clone $query)->whereIn('status', ['hadir', 'terlambat'])->count();
+            $hadirTepat = (clone $query)->where('status', 'hadir')->count();
             $terlambat = (clone $query)->where('status', 'terlambat')->count();
             $izin = (clone $query)->where('status', 'izin')->count();
             $sakit = (clone $query)->where('status', 'sakit')->count();
@@ -139,8 +145,10 @@ class PimpinanDashboardController extends Controller
 
             return [
                 'total_karyawan' => $totalKaryawan,
-                'hadir' => $hadir,
-                'terlambat' => $terlambat,
+                'hadir_total' => $hadirTotal, // Total hadir (termasuk terlambat)
+                'hadir_tepat' => $hadirTepat, // Hadir tepat waktu
+                'hadir' => $hadirTotal, // ADD THIS LINE - for compatibility with view
+                'terlambat' => $terlambat, // Terlambat saja
                 'izin' => $izin,
                 'sakit' => $sakit,
                 'belum_absen' => $belumAbsen,
@@ -208,7 +216,8 @@ class PimpinanDashboardController extends Controller
             ->select([
                 'user_id',
                 DB::raw('COUNT(*) as total_absen'),
-                DB::raw('SUM(CASE WHEN status = "hadir" THEN 1 ELSE 0 END) as hadir'),
+                DB::raw('SUM(CASE WHEN status IN ("hadir", "terlambat") THEN 1 ELSE 0 END) as hadir_total'),
+                DB::raw('SUM(CASE WHEN status = "hadir" THEN 1 ELSE 0 END) as hadir_tepat'),
                 DB::raw('SUM(CASE WHEN status = "terlambat" THEN 1 ELSE 0 END) as terlambat'),
                 DB::raw('SUM(CASE WHEN status = "izin" THEN 1 ELSE 0 END) as izin'),
                 DB::raw('SUM(CASE WHEN status = "sakit" THEN 1 ELSE 0 END) as sakit')
@@ -224,7 +233,12 @@ class PimpinanDashboardController extends Controller
         }
 
         if ($status) {
-            $query->havingRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) > 0', [$status]);
+            if ($status === 'hadir') {
+                // Jika filter hadir, tampilkan yang ada record hadir atau terlambat
+                $query->havingRaw('SUM(CASE WHEN status IN ("hadir", "terlambat") THEN 1 ELSE 0 END) > 0');
+            } else {
+                $query->havingRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) > 0', [$status]);
+            }
         }
 
         $results = $query->get();
@@ -237,11 +251,13 @@ class PimpinanDashboardController extends Controller
                 'user_id' => $item->user_id,
                 'name' => $user ? $user->name : 'Unknown',
                 'total_absen' => $item->total_absen,
-                'hadir' => $item->hadir,
+                'hadir_total' => $item->hadir_total, // Total hadir termasuk terlambat
+                'hadir_tepat' => $item->hadir_tepat, // Hadir tepat waktu
+                'hadir' => $item->hadir_total, // ADD THIS LINE - for compatibility with view
                 'terlambat' => $item->terlambat,
                 'izin' => $item->izin,
                 'sakit' => $item->sakit,
-                'percentage' => $item->total_absen > 0 ? round(($item->hadir / $item->total_absen) * 100, 1) : 0
+                'percentage' => $item->total_absen > 0 ? round(($item->hadir_total / $item->total_absen) * 100, 1) : 0
             ];
         });
 
@@ -305,7 +321,8 @@ class PimpinanDashboardController extends Controller
             $query = Absensi::whereMonth('created_at', $bulan)
                 ->whereYear('created_at', $tahun);
 
-            $hadir = (clone $query)->where('status', 'hadir')->count();
+            // Hitung dengan logika yang benar
+            $hadirTepat = (clone $query)->where('status', 'hadir')->count();
             $terlambat = (clone $query)->where('status', 'terlambat')->count();
             $izin = (clone $query)->where('status', 'izin')->count();
             $sakit = (clone $query)->where('status', 'sakit')->count();
@@ -316,7 +333,8 @@ class PimpinanDashboardController extends Controller
         } else {
             $query = Absensi::whereDate('created_at', Carbon::today());
 
-            $hadir = (clone $query)->where('status', 'hadir')->count();
+            // Hitung dengan logika yang benar
+            $hadirTepat = (clone $query)->where('status', 'hadir')->count();
             $terlambat = (clone $query)->where('status', 'terlambat')->count();
             $izin = (clone $query)->where('status', 'izin')->count();
             $sakit = (clone $query)->where('status', 'sakit')->count();
@@ -327,14 +345,14 @@ class PimpinanDashboardController extends Controller
         }
 
         return [
-            'labels' => ['Hadir', 'Terlambat', 'Izin', 'Sakit', 'Belum Absen'],
-            'data' => [$hadir, $terlambat, $izin, $sakit, $belum],
+            'labels' => ['Hadir Tepat', 'Terlambat', 'Izin', 'Sakit', 'Belum Absen'],
+            'data' => [$hadirTepat, $terlambat, $izin, $sakit, $belum],
             'colors' => [
-                'rgba(40, 167, 69, 0.8)',
-                'rgba(255, 193, 7, 0.8)',
-                'rgba(23, 162, 184, 0.8)',
-                'rgba(108, 117, 125, 0.8)',
-                'rgba(220, 53, 69, 0.8)'
+                'rgba(40, 167, 69, 0.8)',   // Hijau untuk hadir tepat
+                'rgba(255, 193, 7, 0.8)',   // Kuning untuk terlambat
+                'rgba(23, 162, 184, 0.8)',  // Biru untuk izin
+                'rgba(108, 117, 125, 0.8)', // Abu-abu untuk sakit
+                'rgba(220, 53, 69, 0.8)'    // Merah untuk belum absen
             ]
         ];
     }
