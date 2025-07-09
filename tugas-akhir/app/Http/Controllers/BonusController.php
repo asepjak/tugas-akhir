@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\BonusKaryawan;
 use App\Models\User;
 use App\Models\Absensi;
+use App\Models\ActivityLog;
+use Illuminate\Support\Facades\Auth;
 
 class BonusController extends Controller
 {
@@ -58,12 +60,101 @@ class BonusController extends Controller
                 'tahun' => $request->tahun,
             ]);
 
+            // Log aktivitas
+            $user = User::find($request->user_id);
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'type' => 'bonus_added',
+                'description' => 'Menambahkan bonus untuk karyawan ' . ($user ? $user->name : 'Unknown'),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+
             return redirect()->back()->with('success', 'Bonus berhasil disimpan!');
 
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Terjadi kesalahan saat menyimpan bonus: ' . $e->getMessage())
                 ->withInput();
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        $bonus = BonusKaryawan::findOrFail($id);
+
+        // Validasi input
+        $request->validate([
+            'jumlah_bonus' => 'required|numeric|min:0',
+            'bulan' => 'required|string|size:2',
+            'tahun' => 'required|numeric|min:2020',
+            'keterangan' => 'nullable|string|max:255',
+        ]);
+
+        // Cek apakah sudah ada bonus lain untuk karyawan di bulan dan tahun yang sama
+        $existingBonus = BonusKaryawan::where('user_id', $bonus->user_id)
+            ->where('bulan', $request->bulan)
+            ->where('tahun', $request->tahun)
+            ->where('id', '!=', $id)
+            ->first();
+
+        if ($existingBonus) {
+            return redirect()->back()
+                ->with('error', 'Bonus untuk karyawan ini di bulan dan tahun tersebut sudah ada!')
+                ->withInput();
+        }
+
+        try {
+            // Update bonus
+            $bonus->update([
+                'jumlah_bonus' => $request->jumlah_bonus,
+                'keterangan' => $request->keterangan,
+                'bulan' => $request->bulan,
+                'tahun' => $request->tahun,
+            ]);
+
+            // Log aktivitas
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'type' => 'bonus_updated',
+                'description' => 'Mengupdate bonus untuk karyawan ' . ($bonus->user ? $bonus->user->name : 'Unknown'),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+
+            return redirect()->back()->with('success', 'Bonus berhasil diupdate!');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat mengupdate bonus: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $bonus = BonusKaryawan::findOrFail($id);
+
+        try {
+            $userName = $bonus->user ? $bonus->user->name : 'Unknown';
+
+            // Hapus bonus
+            $bonus->delete();
+
+            // Log aktivitas
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'type' => 'bonus_deleted',
+                'description' => 'Menghapus bonus untuk karyawan ' . $userName,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+
+            return redirect()->back()->with('success', 'Bonus berhasil dihapus!');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat menghapus bonus: ' . $e->getMessage());
         }
     }
 
@@ -116,6 +207,15 @@ class BonusController extends Controller
                               " + Bonus keuntungan: Rp " . number_format($bonusKeuntungan, 0, ',', '.'),
                 'bulan' => $bulan,
                 'tahun' => $tahun,
+            ]);
+
+            // Log aktivitas
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'type' => 'bonus_calculated',
+                'description' => 'Menghitung bonus otomatis untuk karyawan ' . $user->name,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent()
             ]);
 
             return redirect()->back()->with('success', 'Bonus otomatis berhasil dihitung dan disimpan!');

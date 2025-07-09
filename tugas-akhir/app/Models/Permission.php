@@ -10,7 +10,15 @@ class Permission extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'keterangan', 'alasan', 'tanggal_mulai', 'tanggal_selesai', 'file_surat', 'status'
+        'user_id',
+        'keterangan',
+        'alasan',
+        'tanggal_mulai',
+        'tanggal_selesai',
+        'file_surat',
+        'perjalanan_keluar_kota',
+        'no_surat',
+        'status',
     ];
 
     public function user()

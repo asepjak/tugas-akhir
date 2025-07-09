@@ -24,8 +24,11 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Routes Pimpinan
 Route::middleware(['auth', 'role:pimpinan'])->prefix('pimpinan')->group(function () {
     Route::get('/dashboard', [PimpinanDashboardController::class, 'index'])->name('pimpinan.dashboard');
-    Route::post('/bonus/store', [BonusController::class, 'store'])->name('pimpinan.bonus.store');
     Route::get('/bonus', [BonusController::class, 'index'])->name('pimpinan.bonus.index');
+    Route::post('/bonus', [BonusController::class, 'store'])->name('pimpinan.bonus.store');
+    Route::put('/bonus/{id}', [BonusController::class, 'update'])->name('pimpinan.bonus.update');
+    Route::delete('/bonus/{id}', [BonusController::class, 'destroy'])->name('pimpinan.bonus.destroy');
+    Route::post('/bonus/calculate', [BonusController::class, 'calculateBonus'])->name('pimpinan.bonus.calculate');
     Route::get('/permissions', [PermissionApprovalController::class, 'index'])->name('pimpinan.permissions.index');
     Route::put('/permissions/{id}/status', [PermissionApprovalController::class, 'updateStatus'])->name('pimpinan.permissions.updateStatus');
     // Profile untuk Pimpinan

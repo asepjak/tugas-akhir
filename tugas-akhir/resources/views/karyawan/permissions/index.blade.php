@@ -101,11 +101,11 @@
 
                         <!-- Nomor Unit -->
                         <div class="col-md-6 col-lg-2">
-                            <label for="nomor_unit" class="form-label">Nomor Unit</label>
-                            <input type="text" name="nomor_unit" id="nomor_unit"
-                                class="form-control @error('nomor_unit') is-invalid @enderror"
-                                placeholder="Nomor Unit (opsional)" value="{{ old('nomor_unit') }}">
-                            @error('nomor_unit')
+                            <label for="no_surat" class="form-label">Nomor Surat</label>
+                            <input type="text" name="no_surat" id="no_surat"
+                                class="form-control @error('no_surat') is-invalid @enderror"
+                                placeholder="Nomor Surat" value="{{ old('no_surat') }}">
+                            @error('no_surat')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('tanggal_selesai');
             $table->string('file_surat')->nullable(); // file path
             $table->string('perjalanan_keluar_kota')->nullable();
-            $table->string('nomor_unit')->nullable();
+            $table->string('no_surat')->nullable();
             $table->string('muatan')->nullable();
             $table->string('merek_muatan')->nullable();
             $table->enum('status', ['Menunggu', 'Disetujui', 'Ditolak'])->default('Menunggu');

@@ -270,8 +270,8 @@ class PimpinanDashboardController extends Controller
             // Untuk daily view, tampilkan data per jam
             $chartRaw = Absensi::selectRaw('HOUR(created_at) as jam, COUNT(*) as total')
                 ->whereDate('created_at', Carbon::today())
-                ->groupBy('jam')
-                ->orderBy('jam')
+                ->groupByRaw('HOUR(created_at)')  // Use groupByRaw instead of groupBy
+                ->orderByRaw('HOUR(created_at)')  // Use orderByRaw instead of orderBy
                 ->get();
 
             $labels = [];
@@ -292,8 +292,8 @@ class PimpinanDashboardController extends Controller
             $chartRaw = Absensi::selectRaw('DAY(created_at) as hari, COUNT(*) as total')
                 ->whereMonth('created_at', $bulan)
                 ->whereYear('created_at', $tahun)
-                ->groupBy('hari')
-                ->orderBy('hari')
+                ->groupByRaw('DAY(created_at)')  // Use groupByRaw instead of groupBy
+                ->orderByRaw('DAY(created_at)')  // Use orderByRaw instead of orderBy
                 ->get();
 
             $labels = [];

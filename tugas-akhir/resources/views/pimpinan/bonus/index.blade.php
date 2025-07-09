@@ -63,6 +63,7 @@
                     <th>Jumlah Bonus</th>
                     <th>Keterangan</th>
                     <th>Dibuat</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -75,10 +76,26 @@
                         <td>Rp{{ number_format($bonus->jumlah_bonus, 0, ',', '.') }}</td>
                         <td>{{ $bonus->keterangan ?? '-' }}</td>
                         <td>{{ $bonus->created_at->diffForHumans() }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-warning"
+                                        onclick="editBonus({{ $bonus->id }}, '{{ $bonus->user->name }}', '{{ $bonus->bulan }}', '{{ $bonus->tahun }}', {{ $bonus->jumlah_bonus }}, '{{ $bonus->keterangan }}')"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEditBonus">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger"
+                                        onclick="deleteBonus({{ $bonus->id }}, '{{ $bonus->user->name }}')"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalDeleteBonus">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted">Belum ada data bonus</td>
+                        <td colspan="8" class="text-center text-muted">Belum ada data bonus</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -87,13 +104,13 @@
 </div>
 
 <!-- Modal Tambah Bonus -->
-<div class="modal fade" id="modalTambahBonus" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+<div class="modal fade" id="modalTambahBonus" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <form action="{{ route('pimpinan.bonus.store') }}" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalLabel">Tambah Bonus Karyawan</h5>
+                    <h5 class="modal-title" id="modalTambahLabel">Tambah Bonus Karyawan</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
@@ -177,6 +194,97 @@
     </div>
 </div>
 
+<!-- Modal Edit Bonus -->
+<div class="modal fade" id="modalEditBonus" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="formEditBonus" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="modalEditLabel">Edit Bonus Karyawan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="edit_user_name" class="form-label">Karyawan</label>
+                            <input type="text" id="edit_user_name" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit_bulan" class="form-label">Bulan</label>
+                            <select name="bulan" id="edit_bulan" class="form-select" required>
+                                @foreach(['01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April','05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus','09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'] as $key => $bln)
+                                    <option value="{{ $key }}">{{ $bln }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit_tahun" class="form-label">Tahun</label>
+                            <select name="tahun" id="edit_tahun" class="form-select" required>
+                                @for ($i = now()->year - 3; $i <= now()->year + 1; $i++)
+                                    <option value="{{ $i }}">{{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_jumlah_bonus" class="form-label">Jumlah Bonus (Rp)</label>
+                            <input type="number"
+                                   class="form-control"
+                                   name="jumlah_bonus"
+                                   id="edit_jumlah_bonus"
+                                   required
+                                   min="0"
+                                   step="1000"
+                                   placeholder="Contoh: 500000">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_keterangan" class="form-label">Keterangan (opsional)</label>
+                            <textarea name="keterangan"
+                                      id="edit_keterangan"
+                                      class="form-control"
+                                      rows="2"
+                                      placeholder="Contoh: Bonus prestasi kerja"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save"></i> Update
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Delete Bonus -->
+<div class="modal fade" id="modalDeleteBonus" tabindex="-1" aria-labelledby="modalDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="formDeleteBonus" method="POST">
+            @csrf
+            @method('DELETE')
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalDeleteLabel">Hapus Bonus</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin menghapus bonus untuk karyawan <strong id="delete_user_name"></strong>?</p>
+                    <p class="text-muted">Tindakan ini tidak dapat dibatalkan.</p>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 @if($errors->any())
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -185,4 +293,26 @@
     });
 </script>
 @endif
+
+<script>
+function editBonus(id, userName, bulan, tahun, jumlahBonus, keterangan) {
+    // Set form action
+    document.getElementById('formEditBonus').action = `/pimpinan/bonus/${id}`;
+
+    // Fill form fields
+    document.getElementById('edit_user_name').value = userName;
+    document.getElementById('edit_bulan').value = bulan;
+    document.getElementById('edit_tahun').value = tahun;
+    document.getElementById('edit_jumlah_bonus').value = jumlahBonus;
+    document.getElementById('edit_keterangan').value = keterangan || '';
+}
+
+function deleteBonus(id, userName) {
+    // Set form action
+    document.getElementById('formDeleteBonus').action = `/pimpinan/bonus/${id}`;
+
+    // Set user name in confirmation message
+    document.getElementById('delete_user_name').textContent = userName;
+}
+</script>
 @endsection
