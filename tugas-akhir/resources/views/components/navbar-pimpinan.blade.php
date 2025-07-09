@@ -9,10 +9,13 @@
     <!-- CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-
     @stack('styles')
+
     <style>
-        /* Salin semua style dari sidebar admin yang kamu lampirkan sebelumnya */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
         .sidebar {
             position: fixed;
             top: 0;
@@ -23,7 +26,6 @@
             transition: transform 0.3s ease;
             z-index: 1030;
             overflow-y: auto;
-            transform: translateX(0);
         }
 
         .sidebar.collapsed {
@@ -36,7 +38,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.4);
             z-index: 1020;
             display: none;
         }
@@ -73,7 +75,7 @@
         }
 
         .nav-link:hover {
-            background-color: #f5f5f5;
+            background-color: #f1f1f1;
             border-radius: 8px;
         }
 
@@ -93,15 +95,10 @@
             .mobile-toggle {
                 display: block;
             }
-
-            .sidebar-text,
-            .d-none.d-md-inline {
-                display: inline !important;
-            }
         }
 
         .sidebar-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
         }
 
@@ -109,28 +106,21 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
-        .nav-item {
-            margin-bottom: 5px;
-        }
-
-        .nav-link {
-            transition: all 0.3s ease;
-            margin: 2px 0;
-        }
-
-        .dropdown-menu {
-            margin-top: 5px;
-        }
-
         .mobile-close {
             cursor: pointer;
             padding: 5px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
         }
 
-        .mobile-close:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .nav-item {
+            margin-bottom: 4px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
         }
     </style>
 </head>
@@ -149,57 +139,52 @@
             @php $user = Auth::user(); @endphp
             <div class="d-flex align-items-center">
                 <img src="{{ asset($user->foto ? 'storage/' . $user->foto : 'default-profile.png') }}"
-                    onerror="this.onerror=null; this.src='{{ asset('default-profile.png') }}';"
-                    class="rounded-circle me-2 profile-img" alt="Profile">
+                     onerror="this.onerror=null; this.src='{{ asset('default-profile.png') }}';"
+                     class="rounded-circle me-2 profile-img" alt="Profile">
                 <strong class="d-none d-md-inline">{{ $user->nama ?? $user->name }}</strong>
             </div>
-            <i class="fas fa-times d-md-none mobile-close" onclick="toggleSidebar()"></i>
+            <i class="fas fa-times d-md-none mobile-close text-white" onclick="toggleSidebar()"></i>
         </div>
+
         <ul class="nav flex-column px-2 mt-2">
             <li class="nav-item">
                 <a href="{{ route('pimpinan.dashboard') }}"
-                    class="nav-link py-2 {{ request()->routeIs('pimpinan.dashboard') ? 'active' : '' }}">
-                    <i class="fas fa-tachometer-alt me-2"></i> <span class="d-none d-md-inline">Dashboard</span>
+                   class="nav-link {{ request()->routeIs('pimpinan.dashboard') ? 'active' : '' }}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{{ route('pimpinan.bonus.index') }}"
-                    class="nav-link py-2 {{ request()->routeIs('pimpinan.bonus.index') ? 'active' : '' }}">
-                    <i class="fas fa-money-bill-wave me-2"></i>
-                    <span class="d-none d-md-inline">Bonus Karyawan</span>
+                   class="nav-link {{ request()->routeIs('pimpinan.bonus.index') ? 'active' : '' }}">
+                    <i class="fas fa-money-bill-wave"></i> Bonus Karyawan
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{{ route('pimpinan.permissions.index') }}"
-                    class="nav-link py-2 {{ request()->routeIs('pimpinan.permissions.index') ? 'active' : '' }}">
-                    <i class="fas fa-check-circle me-2"></i>
-                    <span class="d-none d-md-inline">Approval Cuti</span>
+                   class="nav-link {{ request()->routeIs('pimpinan.permissions.index') ? 'active' : '' }}">
+                    <i class="fas fa-check-circle"></i> Approval Cuti
                 </a>
             </li>
-
-            {{-- <li class="nav-item">
-            <a href="{{ route('pimpinan.laporan') }}" class="nav-link py-2 {{ request()->routeIs('pimpinan.laporan') ? 'active' : '' }}">
-                <i class="fas fa-chart-pie me-2"></i> <span class="d-none d-md-inline">Laporan</span>
-            </a>
-        </li> --}}
+            <li class="nav-item">
+                <a href="{{ route('pimpinan.permissions.riwayat') }}"
+                   class="nav-link {{ request()->routeIs('pimpinan.permissions.riwayat') ? 'active' : '' }}">
+                    <i class="fas fa-clock-rotate-left"></i> Riwayat Pengajuan
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="{{ route('pimpinan.profile.edit') }}"
-                    class="nav-link py-2 {{ request()->routeIs('pimpinan.profile.edit') ? 'active' : '' }}">
-                    <i class="fas fa-user-circle me-2"></i> <span class="d-none d-md-inline">Profil</span>
+                   class="nav-link {{ request()->routeIs('pimpinan.profile.edit') ? 'active' : '' }}">
+                    <i class="fas fa-user-circle"></i> Profil
                 </a>
-
             </li>
-            <li class="nav-item">
-                <form action="{{ route('logout') }}" method="POST" class="d-block">
+            <li class="nav-item mt-3">
+                <form action="{{ route('logout') }}" method="POST">
                     @csrf
-                    <button type="submit" class="btn btn-link nav-link py-2 w-100 text-start text-danger"
-                        style="text-decoration: none;">
-                        <i class="fas fa-sign-out-alt me-2"></i>
-                        <span class="d-none d-md-inline">Logout</span>
+                    <button type="submit" class="btn btn-link nav-link text-danger w-100 text-start">
+                        <i class="fas fa-sign-out-alt"></i> Logout
                     </button>
                 </form>
             </li>
-
         </ul>
     </div>
 
@@ -228,7 +213,7 @@
             }
         }
 
-        window.addEventListener('resize', function() {
+        window.addEventListener('resize', () => {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
             const mainContent = document.getElementById('mainContent');

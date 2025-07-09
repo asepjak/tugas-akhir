@@ -11,7 +11,7 @@ class PermissionApprovalController extends Controller
     public function index()
     {
         $permissions = Permission::with('user')
-            ->where('keterangan', 'Cuti')
+            ->whereIn('keterangan', ['Cuti', 'Perjalanan Keluar Kota'])
             ->where('status', 'Menunggu')
             ->latest()
             ->get();
@@ -27,14 +27,23 @@ class PermissionApprovalController extends Controller
 
         $permission = Permission::findOrFail($id);
 
-        // Pastikan hanya izin "Cuti" yang bisa diubah oleh pimpinan
-        if ($permission->keterangan !== 'Cuti') {
-            abort(403, 'Pimpinan hanya dapat memverifikasi pengajuan cuti.');
+        if (!in_array($permission->keterangan, ['Cuti', 'Perjalanan Keluar Kota'])) {
+            abort(403, 'Pimpinan hanya dapat memverifikasi pengajuan cuti dan perjalanan dinas.');
         }
 
         $permission->status = $request->status;
         $permission->save();
 
-        return redirect()->route('pimpinan.permissions.index')->with('success', 'Status cuti berhasil diperbarui.');
+        return redirect()->route('pimpinan.permissions.index')->with('success', 'Status pengajuan berhasil diperbarui.');
+    }
+    public function riwayat()
+    {
+        $permissions = Permission::with('user')
+            ->whereIn('keterangan', ['Cuti', 'Perjalanan Keluar Kota'])
+            ->whereIn('status', ['Disetujui', 'Ditolak'])
+            ->latest()
+            ->get();
+
+        return view('pimpinan.permissions.riwayat', compact('permissions'));
     }
 }

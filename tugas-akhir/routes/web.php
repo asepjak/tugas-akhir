@@ -31,6 +31,8 @@ Route::middleware(['auth', 'role:pimpinan'])->prefix('pimpinan')->group(function
     Route::post('/bonus/calculate', [BonusController::class, 'calculateBonus'])->name('pimpinan.bonus.calculate');
     Route::get('/permissions', [PermissionApprovalController::class, 'index'])->name('pimpinan.permissions.index');
     Route::put('/permissions/{id}/status', [PermissionApprovalController::class, 'updateStatus'])->name('pimpinan.permissions.updateStatus');
+    Route::get('/permissions/riwayat', [PermissionApprovalController::class, 'riwayat'])->name('pimpinan.permissions.riwayat');
+
     // Profile untuk Pimpinan
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('pimpinan.profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('pimpinan.profile.update');

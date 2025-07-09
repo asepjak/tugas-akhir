@@ -1,14 +1,10 @@
 @extends('layouts.pimpinan-app')
 
-@section('title', 'Approval Cuti & Perjalanan Dinas')
+@section('title', 'Riwayat Pengajuan Cuti & Dinas')
 
 @section('content')
 <div class="container py-4">
-    <h4 class="mb-3">Approval Cuti & Perjalanan Dinas</h4>
-
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+    <h4 class="mb-3">Riwayat Pengajuan Cuti & Perjalanan Dinas</h4>
 
     <div class="card shadow-sm">
         <div class="card-body p-0">
@@ -18,11 +14,12 @@
                         <tr>
                             <th>No</th>
                             <th>Nama</th>
-                            <th>Tanggal Pengajuan</th>
+                            <th>Jenis</th>
+                            <th>Periode</th>
                             <th>Alasan</th>
                             <th>Lampiran</th>
                             <th>Status</th>
-                            <th>Aksi</th>
+                            <th>Waktu Pengajuan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -30,6 +27,7 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $item->user->nama ?? $item->user->name }}</td>
+                                <td>{{ $item->keterangan }}</td>
                                 <td>{{ \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') }} - {{ \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') }}</td>
                                 <td>{{ $item->alasan ?? '-' }}</td>
                                 <td>
@@ -42,27 +40,17 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <span class="badge bg-primary">{{ $item->keterangan }}</span><br>
-                                    <span class="badge bg-warning text-dark">{{ $item->status }}</span>
+                                    @if ($item->status == 'Disetujui')
+                                        <span class="badge bg-success">{{ $item->status }}</span>
+                                    @else
+                                        <span class="badge bg-danger">{{ $item->status }}</span>
+                                    @endif
                                 </td>
-                                <td>
-                                    <form action="{{ route('pimpinan.permissions.updateStatus', $item->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('PUT')
-                                        <input type="hidden" name="status" value="Disetujui">
-                                        <button type="submit" class="btn btn-success btn-sm">Setujui</button>
-                                    </form>
-                                    <form action="{{ route('pimpinan.permissions.updateStatus', $item->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('PUT')
-                                        <input type="hidden" name="status" value="Ditolak">
-                                        <button type="submit" class="btn btn-danger btn-sm">Tolak</button>
-                                    </form>
-                                </td>
+                                <td><small>{{ $item->created_at->format('d M Y H:i') }}</small></td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted">Tidak ada pengajuan cuti atau perjalanan dinas yang menunggu.</td>
+                                <td colspan="8" class="text-center text-muted">Belum ada data pengajuan yang disetujui atau ditolak.</td>
                             </tr>
                         @endforelse
                     </tbody>

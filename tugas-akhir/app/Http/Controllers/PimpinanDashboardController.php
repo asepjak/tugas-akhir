@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Absensi;
 use App\Models\User;
+use App\Models\Permission;
 use App\Models\BonusKaryawan;
 use App\Models\ActivityLog;
 use Carbon\Carbon;
@@ -98,18 +99,42 @@ class PimpinanDashboardController extends Controller
         $totalKaryawan = User::where('role', 'karyawan')->count();
 
         if ($viewType === 'monthly') {
-            $query = Absensi::whereMonth('created_at', $bulan)
+            // Query untuk absensi
+            $absensiQuery = Absensi::whereMonth('created_at', $bulan)
                 ->whereYear('created_at', $tahun);
 
-            // Hitung hadir total (termasuk terlambat sebagai bagian dari hadir)
-            $hadirTotal = (clone $query)->whereIn('status', ['hadir', 'terlambat'])->count();
-            $hadirTepat = (clone $query)->where('status', 'hadir')->count();
-            $terlambat = (clone $query)->where('status', 'terlambat')->count();
-            $izin = (clone $query)->where('status', 'izin')->count();
-            $sakit = (clone $query)->where('status', 'sakit')->count();
-            $totalAbsen = (clone $query)->count();
+            // Query untuk izin/sakit dari Permission
+            $permissionQuery = Permission::where('status', 'Disetujui')
+                ->where(function ($query) use ($bulan, $tahun) {
+                    $query->where(function ($q) use ($bulan, $tahun) {
+                        $q->whereMonth('tanggal_mulai', $bulan)
+                          ->whereYear('tanggal_mulai', $tahun);
+                    })->orWhere(function ($q) use ($bulan, $tahun) {
+                        $q->whereMonth('tanggal_selesai', $bulan)
+                          ->whereYear('tanggal_selesai', $tahun);
+                    });
+                });
 
-            $uniqueUsers = (clone $query)->distinct('user_id')->count('user_id');
+            // Hitung dari absensi
+            $hadirTepat = (clone $absensiQuery)->where('status', 'hadir')->count();
+            $terlambat = (clone $absensiQuery)->where('status', 'terlambat')->count();
+            $izinAbsensi = (clone $absensiQuery)->where('status', 'izin')->count();
+            $sakitAbsensi = (clone $absensiQuery)->where('status', 'sakit')->count();
+
+            // Hitung dari Permission
+            $izinPermission = (clone $permissionQuery)->where('keterangan', 'Izin')->count();
+            $sakitPermission = (clone $permissionQuery)->where('keterangan', 'Sakit')->count();
+            $cutiPermission = (clone $permissionQuery)->where('keterangan', 'Cuti')->count();
+
+            // Total
+            $hadirTotal = $hadirTepat + $terlambat;
+            $izinTotal = $izinAbsensi + $izinPermission + $cutiPermission;
+            $sakitTotal = $sakitAbsensi + $sakitPermission;
+            $totalAbsen = $hadirTotal + $izinTotal + $sakitTotal;
+
+            $uniqueUsers = (clone $absensiQuery)->distinct('user_id')->count('user_id');
+            $uniquePermissionUsers = (clone $permissionQuery)->distinct('user_id')->count('user_id');
+            $totalUniqueUsers = $uniqueUsers + $uniquePermissionUsers;
 
             // Hitung jumlah hari kerja dalam bulan
             $startOfMonth = Carbon::create($tahun, $bulan, 1);
@@ -118,42 +143,59 @@ class PimpinanDashboardController extends Controller
 
             return [
                 'total_karyawan' => $totalKaryawan,
-                'hadir_total' => $hadirTotal, // Total hadir (termasuk terlambat)
-                'hadir_tepat' => $hadirTepat, // Hadir tepat waktu
-                'hadir' => $hadirTotal, // ADD THIS LINE - for compatibility with view
-                'terlambat' => $terlambat, // Terlambat saja
-                'izin' => $izin,
-                'sakit' => $sakit,
+                'hadir_total' => $hadirTotal,
+                'hadir_tepat' => $hadirTepat,
+                'hadir' => $hadirTotal,
+                'terlambat' => $terlambat,
+                'izin' => $izinTotal,
+                'sakit' => $sakitTotal,
                 'total_absen' => $totalAbsen,
-                'unique_users' => $uniqueUsers,
+                'unique_users' => $totalUniqueUsers,
                 'working_days' => $workingDays,
                 'avg_per_day' => $workingDays > 0 ? round($totalAbsen / $workingDays, 1) : 0,
                 'attendance_rate' => $totalAbsen > 0 ? round(($hadirTotal / $totalAbsen) * 100, 1) : 0
             ];
         } else {
-            $query = Absensi::whereDate('created_at', Carbon::today());
+            // Query untuk absensi hari ini
+            $absensiQuery = Absensi::whereDate('created_at', Carbon::today());
 
-            // Hitung hadir total (termasuk terlambat sebagai bagian dari hadir)
-            $hadirTotal = (clone $query)->whereIn('status', ['hadir', 'terlambat'])->count();
-            $hadirTepat = (clone $query)->where('status', 'hadir')->count();
-            $terlambat = (clone $query)->where('status', 'terlambat')->count();
-            $izin = (clone $query)->where('status', 'izin')->count();
-            $sakit = (clone $query)->where('status', 'sakit')->count();
+            // Query untuk izin/sakit hari ini dari Permission
+            $permissionQuery = Permission::where('status', 'Disetujui')
+                ->whereDate('tanggal_mulai', '<=', Carbon::today())
+                ->whereDate('tanggal_selesai', '>=', Carbon::today());
 
-            $sudahAbsen = (clone $query)->distinct('user_id')->count('user_id');
-            $belumAbsen = $totalKaryawan - $sudahAbsen;
+            // Hitung dari absensi
+            $hadirTepat = (clone $absensiQuery)->where('status', 'hadir')->count();
+            $terlambat = (clone $absensiQuery)->where('status', 'terlambat')->count();
+            $izinAbsensi = (clone $absensiQuery)->where('status', 'izin')->count();
+            $sakitAbsensi = (clone $absensiQuery)->where('status', 'sakit')->count();
+
+            // Hitung dari Permission
+            $izinPermission = (clone $permissionQuery)->where('keterangan', 'Izin')->count();
+            $sakitPermission = (clone $permissionQuery)->where('keterangan', 'Sakit')->count();
+            $cutiPermission = (clone $permissionQuery)->where('keterangan', 'Cuti')->count();
+
+            // Total
+            $hadirTotal = $hadirTepat + $terlambat;
+            $izinTotal = $izinAbsensi + $izinPermission + $cutiPermission;
+            $sakitTotal = $sakitAbsensi + $sakitPermission;
+
+            $sudahAbsen = (clone $absensiQuery)->distinct('user_id')->count('user_id');
+            $sudahPermission = (clone $permissionQuery)->distinct('user_id')->count('user_id');
+            $totalSudahAbsen = $sudahAbsen + $sudahPermission;
+            $belumAbsen = $totalKaryawan - $totalSudahAbsen;
 
             return [
                 'total_karyawan' => $totalKaryawan,
-                'hadir_total' => $hadirTotal, // Total hadir (termasuk terlambat)
-                'hadir_tepat' => $hadirTepat, // Hadir tepat waktu
-                'hadir' => $hadirTotal, // ADD THIS LINE - for compatibility with view
-                'terlambat' => $terlambat, // Terlambat saja
-                'izin' => $izin,
-                'sakit' => $sakit,
+                'hadir_total' => $hadirTotal,
+                'hadir_tepat' => $hadirTepat,
+                'hadir' => $hadirTotal,
+                'terlambat' => $terlambat,
+                'izin' => $izinTotal,
+                'sakit' => $sakitTotal,
                 'belum_absen' => $belumAbsen,
-                'sudah_absen' => $sudahAbsen,
-                'attendance_rate' => $totalKaryawan > 0 ? round(($sudahAbsen / $totalKaryawan) * 100, 1) : 0
+                'sudah_absen' => $totalSudahAbsen,
+                'attendance_rate' => $totalKaryawan > 0 ? round(($totalSudahAbsen / $totalKaryawan) * 100, 1) : 0
             ];
         }
     }
@@ -164,27 +206,68 @@ class PimpinanDashboardController extends Controller
             return collect(); // Tidak digunakan di view monthly
         }
 
-        $query = Absensi::with('user')
+        // Query absensi hari ini
+        $absensiQuery = Absensi::with('user')
             ->whereDate('created_at', Carbon::today())
             ->orderBy('created_at', 'desc');
 
+        // Query permission hari ini
+        $permissionQuery = Permission::with('user')
+            ->where('status', 'Disetujui')
+            ->whereDate('tanggal_mulai', '<=', Carbon::today())
+            ->whereDate('tanggal_selesai', '>=', Carbon::today());
+
         if ($nama) {
-            $query->whereHas('user', function ($q) use ($nama) {
+            $absensiQuery->whereHas('user', function ($q) use ($nama) {
+                $q->where('name', 'like', '%' . $nama . '%');
+            });
+            $permissionQuery->whereHas('user', function ($q) use ($nama) {
                 $q->where('name', 'like', '%' . $nama . '%');
             });
         }
 
         if ($status && $status !== 'belum_absen') {
-            $query->where('status', $status);
+            if ($status === 'hadir') {
+                $absensiQuery->whereIn('status', ['hadir', 'terlambat']);
+            } elseif ($status === 'izin') {
+                $absensiQuery->where('status', 'izin');
+                $permissionQuery->whereIn('keterangan', ['Izin', 'Cuti']);
+            } elseif ($status === 'sakit') {
+                $absensiQuery->where('status', 'sakit');
+                $permissionQuery->where('keterangan', 'Sakit');
+            } else {
+                $absensiQuery->where('status', $status);
+            }
         }
 
-        $absensiData = $query->get();
+        $absensiData = $absensiQuery->get();
+
+        // Tambahkan data dari Permission
+        if (!$status || in_array($status, ['izin', 'sakit'])) {
+            $permissionData = $permissionQuery->get()->map(function ($permission) {
+                return (object)[
+                    'id' => 'perm_' . $permission->id,
+                    'user' => $permission->user,
+                    'created_at' => $permission->tanggal_mulai,
+                    'status' => strtolower($permission->keterangan),
+                    'keterangan' => $permission->alasan,
+                    'tanggal_mulai' => $permission->tanggal_mulai,
+                    'tanggal_selesai' => $permission->tanggal_selesai,
+                    'is_permission' => true
+                ];
+            });
+
+            $absensiData = $absensiData->concat($permissionData);
+        }
 
         // Tambahkan yang belum absen jika tidak ada filter status atau filter status adalah 'belum_absen'
         if (!$status || $status === 'belum_absen') {
-            $absenUserIds = $absensiData->pluck('user_id')->toArray();
+            $absenUserIds = $absensiData->pluck('user.id')->toArray();
+            $permissionUserIds = $permissionQuery->pluck('user_id')->toArray();
+            $allAbsenUserIds = array_merge($absenUserIds, $permissionUserIds);
+
             $usersBelumAbsen = User::where('role', 'karyawan')
-                ->whereNotIn('id', $absenUserIds);
+                ->whereNotIn('id', $allAbsenUserIds);
 
             if ($nama) {
                 $usersBelumAbsen->where('name', 'like', '%' . $nama . '%');
@@ -192,7 +275,7 @@ class PimpinanDashboardController extends Controller
 
             $belumAbsenCollection = $usersBelumAbsen->get()->map(function ($user) {
                 return (object)[
-                    'id' => $user->id,
+                    'id' => 'belum_' . $user->id,
                     'user' => $user,
                     'created_at' => null,
                     'status' => 'belum_absen'
@@ -212,54 +295,97 @@ class PimpinanDashboardController extends Controller
 
     private function getMonthlyAttendanceData($bulan, $tahun, $nama, $status)
     {
-        $query = Absensi::query()
+        // Query absensi
+        $absensiQuery = Absensi::query()
             ->select([
                 'user_id',
                 DB::raw('COUNT(*) as total_absen'),
                 DB::raw('SUM(CASE WHEN status IN ("hadir", "terlambat") THEN 1 ELSE 0 END) as hadir_total'),
                 DB::raw('SUM(CASE WHEN status = "hadir" THEN 1 ELSE 0 END) as hadir_tepat'),
                 DB::raw('SUM(CASE WHEN status = "terlambat" THEN 1 ELSE 0 END) as terlambat'),
-                DB::raw('SUM(CASE WHEN status = "izin" THEN 1 ELSE 0 END) as izin'),
-                DB::raw('SUM(CASE WHEN status = "sakit" THEN 1 ELSE 0 END) as sakit')
+                DB::raw('SUM(CASE WHEN status = "izin" THEN 1 ELSE 0 END) as izin_absensi'),
+                DB::raw('SUM(CASE WHEN status = "sakit" THEN 1 ELSE 0 END) as sakit_absensi')
             ])
             ->whereMonth('created_at', $bulan)
             ->whereYear('created_at', $tahun)
             ->groupBy('user_id');
 
+        // Query permission
+        $permissionQuery = Permission::query()
+            ->select([
+                'user_id',
+                DB::raw('SUM(CASE WHEN keterangan IN ("Izin", "Cuti") THEN 1 ELSE 0 END) as izin_permission'),
+                DB::raw('SUM(CASE WHEN keterangan = "Sakit" THEN 1 ELSE 0 END) as sakit_permission')
+            ])
+            ->where('status', 'Disetujui')
+            ->where(function ($query) use ($bulan, $tahun) {
+                $query->where(function ($q) use ($bulan, $tahun) {
+                    $q->whereMonth('tanggal_mulai', $bulan)
+                      ->whereYear('tanggal_mulai', $tahun);
+                })->orWhere(function ($q) use ($bulan, $tahun) {
+                    $q->whereMonth('tanggal_selesai', $bulan)
+                      ->whereYear('tanggal_selesai', $tahun);
+                });
+            })
+            ->groupBy('user_id');
+
         if ($nama) {
-            $query->whereHas('user', function ($q) use ($nama) {
+            $absensiQuery->whereHas('user', function ($q) use ($nama) {
+                $q->where('name', 'like', '%' . $nama . '%');
+            });
+            $permissionQuery->whereHas('user', function ($q) use ($nama) {
                 $q->where('name', 'like', '%' . $nama . '%');
             });
         }
 
-        if ($status) {
-            if ($status === 'hadir') {
-                // Jika filter hadir, tampilkan yang ada record hadir atau terlambat
-                $query->havingRaw('SUM(CASE WHEN status IN ("hadir", "terlambat") THEN 1 ELSE 0 END) > 0');
-            } else {
-                $query->havingRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) > 0', [$status]);
-            }
-        }
+        $absensiResults = $absensiQuery->get()->keyBy('user_id');
+        $permissionResults = $permissionQuery->get()->keyBy('user_id');
 
-        $results = $query->get();
+        // Gabungkan semua user_id yang ada
+        $allUserIds = $absensiResults->keys()->merge($permissionResults->keys())->unique();
 
-        // Load user data dan format hasil
-        $formattedResults = $results->map(function ($item) {
-            $user = User::find($item->user_id);
+        // Format hasil
+        $formattedResults = $allUserIds->map(function ($userId) use ($absensiResults, $permissionResults) {
+            $user = User::find($userId);
+            $absensi = $absensiResults->get($userId);
+            $permission = $permissionResults->get($userId);
+
+            $hadirTotal = $absensi ? $absensi->hadir_total : 0;
+            $hadirTepat = $absensi ? $absensi->hadir_tepat : 0;
+            $terlambat = $absensi ? $absensi->terlambat : 0;
+            $izinTotal = ($absensi ? $absensi->izin_absensi : 0) + ($permission ? $permission->izin_permission : 0);
+            $sakitTotal = ($absensi ? $absensi->sakit_absensi : 0) + ($permission ? $permission->sakit_permission : 0);
+            $totalAbsen = $hadirTotal + $izinTotal + $sakitTotal;
 
             return [
-                'user_id' => $item->user_id,
+                'user_id' => $userId,
                 'name' => $user ? $user->name : 'Unknown',
-                'total_absen' => $item->total_absen,
-                'hadir_total' => $item->hadir_total, // Total hadir termasuk terlambat
-                'hadir_tepat' => $item->hadir_tepat, // Hadir tepat waktu
-                'hadir' => $item->hadir_total, // ADD THIS LINE - for compatibility with view
-                'terlambat' => $item->terlambat,
-                'izin' => $item->izin,
-                'sakit' => $item->sakit,
-                'percentage' => $item->total_absen > 0 ? round(($item->hadir_total / $item->total_absen) * 100, 1) : 0
+                'total_absen' => $totalAbsen,
+                'hadir_total' => $hadirTotal,
+                'hadir_tepat' => $hadirTepat,
+                'hadir' => $hadirTotal,
+                'terlambat' => $terlambat,
+                'izin' => $izinTotal,
+                'sakit' => $sakitTotal,
+                'percentage' => $totalAbsen > 0 ? round(($hadirTotal / $totalAbsen) * 100, 1) : 0
             ];
         });
+
+        // Filter berdasarkan status jika diperlukan
+        if ($status) {
+            $formattedResults = $formattedResults->filter(function ($item) use ($status) {
+                if ($status === 'hadir') {
+                    return $item['hadir_total'] > 0;
+                } elseif ($status === 'izin') {
+                    return $item['izin'] > 0;
+                } elseif ($status === 'sakit') {
+                    return $item['sakit'] > 0;
+                } elseif ($status === 'terlambat') {
+                    return $item['terlambat'] > 0;
+                }
+                return true;
+            });
+        }
 
         return $formattedResults->sortByDesc('total_absen');
     }
@@ -270,8 +396,8 @@ class PimpinanDashboardController extends Controller
             // Untuk daily view, tampilkan data per jam
             $chartRaw = Absensi::selectRaw('HOUR(created_at) as jam, COUNT(*) as total')
                 ->whereDate('created_at', Carbon::today())
-                ->groupByRaw('HOUR(created_at)')  // Use groupByRaw instead of groupBy
-                ->orderByRaw('HOUR(created_at)')  // Use orderByRaw instead of orderBy
+                ->groupByRaw('HOUR(created_at)')
+                ->orderByRaw('HOUR(created_at)')
                 ->get();
 
             $labels = [];
@@ -288,12 +414,20 @@ class PimpinanDashboardController extends Controller
                 'data' => $data,
             ];
         } else {
-            // Untuk monthly view, tampilkan data per hari
-            $chartRaw = Absensi::selectRaw('DAY(created_at) as hari, COUNT(*) as total')
+            // Untuk monthly view, tampilkan data per hari (gabungan absensi dan permission)
+            $absensiRaw = Absensi::selectRaw('DAY(created_at) as hari, COUNT(*) as total')
                 ->whereMonth('created_at', $bulan)
                 ->whereYear('created_at', $tahun)
-                ->groupByRaw('DAY(created_at)')  // Use groupByRaw instead of groupBy
-                ->orderByRaw('DAY(created_at)')  // Use orderByRaw instead of orderBy
+                ->groupByRaw('DAY(created_at)')
+                ->orderByRaw('DAY(created_at)')
+                ->get();
+
+            $permissionRaw = Permission::selectRaw('DAY(tanggal_mulai) as hari, COUNT(*) as total')
+                ->where('status', 'Disetujui')
+                ->whereMonth('tanggal_mulai', $bulan)
+                ->whereYear('tanggal_mulai', $tahun)
+                ->groupByRaw('DAY(tanggal_mulai)')
+                ->orderByRaw('DAY(tanggal_mulai)')
                 ->get();
 
             $labels = [];
@@ -304,8 +438,10 @@ class PimpinanDashboardController extends Controller
 
             for ($i = 1; $i <= $daysInMonth; $i++) {
                 $labels[] = 'Tgl ' . $i;
-                $found = $chartRaw->firstWhere('hari', $i);
-                $data[] = $found ? $found->total : 0;
+                $absensiFound = $absensiRaw->firstWhere('hari', $i);
+                $permissionFound = $permissionRaw->firstWhere('hari', $i);
+                $total = ($absensiFound ? $absensiFound->total : 0) + ($permissionFound ? $permissionFound->total : 0);
+                $data[] = $total;
             }
 
             return [
@@ -318,35 +454,74 @@ class PimpinanDashboardController extends Controller
     private function getPieChartData($bulan, $tahun, $viewType)
     {
         if ($viewType === 'monthly') {
-            $query = Absensi::whereMonth('created_at', $bulan)
+            // Query absensi
+            $absensiQuery = Absensi::whereMonth('created_at', $bulan)
                 ->whereYear('created_at', $tahun);
 
-            // Hitung dengan logika yang benar
-            $hadirTepat = (clone $query)->where('status', 'hadir')->count();
-            $terlambat = (clone $query)->where('status', 'terlambat')->count();
-            $izin = (clone $query)->where('status', 'izin')->count();
-            $sakit = (clone $query)->where('status', 'sakit')->count();
+            // Query permission
+            $permissionQuery = Permission::where('status', 'Disetujui')
+                ->where(function ($query) use ($bulan, $tahun) {
+                    $query->where(function ($q) use ($bulan, $tahun) {
+                        $q->whereMonth('tanggal_mulai', $bulan)
+                          ->whereYear('tanggal_mulai', $tahun);
+                    })->orWhere(function ($q) use ($bulan, $tahun) {
+                        $q->whereMonth('tanggal_selesai', $bulan)
+                          ->whereYear('tanggal_selesai', $tahun);
+                    });
+                });
+
+            // Hitung dari absensi
+            $hadirTepat = (clone $absensiQuery)->where('status', 'hadir')->count();
+            $terlambat = (clone $absensiQuery)->where('status', 'terlambat')->count();
+            $izinAbsensi = (clone $absensiQuery)->where('status', 'izin')->count();
+            $sakitAbsensi = (clone $absensiQuery)->where('status', 'sakit')->count();
+
+            // Hitung dari permission
+            $izinPermission = (clone $permissionQuery)->whereIn('keterangan', ['Izin', 'Cuti'])->count();
+            $sakitPermission = (clone $permissionQuery)->where('keterangan', 'Sakit')->count();
+
+            // Total
+            $izinTotal = $izinAbsensi + $izinPermission;
+            $sakitTotal = $sakitAbsensi + $sakitPermission;
 
             $totalKaryawan = User::where('role', 'karyawan')->count();
-            $uniqueUsers = (clone $query)->distinct('user_id')->count('user_id');
+            $uniqueAbsensiUsers = (clone $absensiQuery)->distinct('user_id')->count('user_id');
+            $uniquePermissionUsers = (clone $permissionQuery)->distinct('user_id')->count('user_id');
+            $uniqueUsers = $uniqueAbsensiUsers + $uniquePermissionUsers;
             $belum = $totalKaryawan - $uniqueUsers;
         } else {
-            $query = Absensi::whereDate('created_at', Carbon::today());
+            // Query absensi hari ini
+            $absensiQuery = Absensi::whereDate('created_at', Carbon::today());
 
-            // Hitung dengan logika yang benar
-            $hadirTepat = (clone $query)->where('status', 'hadir')->count();
-            $terlambat = (clone $query)->where('status', 'terlambat')->count();
-            $izin = (clone $query)->where('status', 'izin')->count();
-            $sakit = (clone $query)->where('status', 'sakit')->count();
+            // Query permission hari ini
+            $permissionQuery = Permission::where('status', 'Disetujui')
+                ->whereDate('tanggal_mulai', '<=', Carbon::today())
+                ->whereDate('tanggal_selesai', '>=', Carbon::today());
+
+            // Hitung dari absensi
+            $hadirTepat = (clone $absensiQuery)->where('status', 'hadir')->count();
+            $terlambat = (clone $absensiQuery)->where('status', 'terlambat')->count();
+            $izinAbsensi = (clone $absensiQuery)->where('status', 'izin')->count();
+            $sakitAbsensi = (clone $absensiQuery)->where('status', 'sakit')->count();
+
+            // Hitung dari permission
+            $izinPermission = (clone $permissionQuery)->whereIn('keterangan', ['Izin', 'Cuti'])->count();
+            $sakitPermission = (clone $permissionQuery)->where('keterangan', 'Sakit')->count();
+
+            // Total
+            $izinTotal = $izinAbsensi + $izinPermission;
+            $sakitTotal = $sakitAbsensi + $sakitPermission;
 
             $totalKaryawan = User::where('role', 'karyawan')->count();
-            $sudahAbsen = (clone $query)->distinct('user_id')->count('user_id');
-            $belum = $totalKaryawan - $sudahAbsen;
+            $sudahAbsen = (clone $absensiQuery)->distinct('user_id')->count('user_id');
+            $sudahPermission = (clone $permissionQuery)->distinct('user_id')->count('user_id');
+            $totalSudahAbsen = $sudahAbsen + $sudahPermission;
+            $belum = $totalKaryawan - $totalSudahAbsen;
         }
 
         return [
             'labels' => ['Hadir Tepat', 'Terlambat', 'Izin', 'Sakit', 'Belum Absen'],
-            'data' => [$hadirTepat, $terlambat, $izin, $sakit, $belum],
+            'data' => [$hadirTepat, $terlambat, $izinTotal, $sakitTotal, $belum],
             'colors' => [
                 'rgba(40, 167, 69, 0.8)',   // Hijau untuk hadir tepat
                 'rgba(255, 193, 7, 0.8)',   // Kuning untuk terlambat
@@ -434,7 +609,6 @@ class PimpinanDashboardController extends Controller
             ], 500);
         }
     }
-
 
     public function exportExcel(Request $request)
     {
