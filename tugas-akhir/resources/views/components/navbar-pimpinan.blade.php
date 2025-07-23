@@ -139,8 +139,8 @@
             @php $user = Auth::user(); @endphp
             <div class="d-flex align-items-center">
                 <img src="{{ asset($user->foto ? 'storage/' . $user->foto : 'default-profile.png') }}"
-                     onerror="this.onerror=null; this.src='{{ asset('default-profile.png') }}';"
-                     class="rounded-circle me-2 profile-img" alt="Profile">
+                    onerror="this.onerror=null; this.src='{{ asset('default-profile.png') }}';"
+                    class="rounded-circle me-2 profile-img" alt="Profile">
                 <strong class="d-none d-md-inline">{{ $user->nama ?? $user->name }}</strong>
             </div>
             <i class="fas fa-times d-md-none mobile-close text-white" onclick="toggleSidebar()"></i>
@@ -149,31 +149,38 @@
         <ul class="nav flex-column px-2 mt-2">
             <li class="nav-item">
                 <a href="{{ route('pimpinan.dashboard') }}"
-                   class="nav-link {{ request()->routeIs('pimpinan.dashboard') ? 'active' : '' }}">
+                    class="nav-link {{ request()->routeIs('pimpinan.dashboard') ? 'active' : '' }}">
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{{ route('pimpinan.bonus.index') }}"
-                   class="nav-link {{ request()->routeIs('pimpinan.bonus.index') ? 'active' : '' }}">
+                    class="nav-link {{ request()->routeIs('pimpinan.bonus.index') ? 'active' : '' }}">
                     <i class="fas fa-money-bill-wave"></i> Bonus Karyawan
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{{ route('pimpinan.permissions.index') }}"
-                   class="nav-link {{ request()->routeIs('pimpinan.permissions.index') ? 'active' : '' }}">
-                    <i class="fas fa-check-circle"></i> Approval Cuti
+                    class="nav-link {{ request()->routeIs('pimpinan.permissions.index') ? 'active' : '' }}">
+                    <i class="fas fa-check-circle"></i> Persetujuan Ajuan
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('pimpinan.rekap.bulanan') }}"
+                    class="nav-link {{ request()->routeIs('pimpinan.rekap.*') ? 'active' : '' }}">
+                    <i class="fas fa-calendar-check"></i> Rekap Absensi
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{{ route('pimpinan.permissions.riwayat') }}"
-                   class="nav-link {{ request()->routeIs('pimpinan.permissions.riwayat') ? 'active' : '' }}">
+                    class="nav-link {{ request()->routeIs('pimpinan.permissions.riwayat') ? 'active' : '' }}">
                     <i class="fas fa-clock-rotate-left"></i> Riwayat Pengajuan
                 </a>
             </li>
+
             <li class="nav-item">
                 <a href="{{ route('pimpinan.profile.edit') }}"
-                   class="nav-link {{ request()->routeIs('pimpinan.profile.edit') ? 'active' : '' }}">
+                    class="nav-link {{ request()->routeIs('pimpinan.profile.edit') ? 'active' : '' }}">
                     <i class="fas fa-user-circle"></i> Profil
                 </a>
             </li>

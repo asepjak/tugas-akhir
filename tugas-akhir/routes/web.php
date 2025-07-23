@@ -13,7 +13,8 @@ use App\Http\Controllers\{
     UserManagementController,
     PimpinanDashboardController,
     BonusController,
-    PermissionApprovalController
+    PermissionApprovalController,
+    PimpinanRekapController,
 };
 
 Route::get('/', fn() => redirect('/login'));
@@ -32,6 +33,10 @@ Route::middleware(['auth', 'role:pimpinan'])->prefix('pimpinan')->group(function
     Route::get('/permissions', [PermissionApprovalController::class, 'index'])->name('pimpinan.permissions.index');
     Route::put('/permissions/{id}/status', [PermissionApprovalController::class, 'updateStatus'])->name('pimpinan.permissions.updateStatus');
     Route::get('/permissions/riwayat', [PermissionApprovalController::class, 'riwayat'])->name('pimpinan.permissions.riwayat');
+    Route::get('/rekap/bulanan', [PimpinanRekapController::class, 'bulanan'])->name('pimpinan.rekap.bulanan');
+    Route::get('/rekap/export', [PimpinanRekapController::class, 'exportBulanan'])->name('pimpinan.rekap.export');
+    Route::get('/rekap/print', [PimpinanRekapController::class, 'print'])->name('pimpinan.rekap.print');
+    Route::get('/rekap/detail', [PimpinanRekapController::class, 'getDetailIzinSakit'])->name('pimpinan.rekap.detail');
 
     // Profile untuk Pimpinan
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('pimpinan.profile.edit');

@@ -75,6 +75,8 @@ class PimpinanDashboardController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
+        $notifications = $this->getNotifications($bulan, $tahun);
+
         return view('dashboard.pimpinan', compact(
             'bulanList',
             'tahunList',
@@ -90,7 +92,8 @@ class PimpinanDashboardController extends Controller
             'pieChartData',
             'bonusData',
             'recentActivities',
-            'employees'
+            'employees',
+            'notifications'
         ));
     }
 
@@ -108,10 +111,10 @@ class PimpinanDashboardController extends Controller
                 ->where(function ($query) use ($bulan, $tahun) {
                     $query->where(function ($q) use ($bulan, $tahun) {
                         $q->whereMonth('tanggal_mulai', $bulan)
-                          ->whereYear('tanggal_mulai', $tahun);
+                            ->whereYear('tanggal_mulai', $tahun);
                     })->orWhere(function ($q) use ($bulan, $tahun) {
                         $q->whereMonth('tanggal_selesai', $bulan)
-                          ->whereYear('tanggal_selesai', $tahun);
+                            ->whereYear('tanggal_selesai', $tahun);
                     });
                 });
 
@@ -321,10 +324,10 @@ class PimpinanDashboardController extends Controller
             ->where(function ($query) use ($bulan, $tahun) {
                 $query->where(function ($q) use ($bulan, $tahun) {
                     $q->whereMonth('tanggal_mulai', $bulan)
-                      ->whereYear('tanggal_mulai', $tahun);
+                        ->whereYear('tanggal_mulai', $tahun);
                 })->orWhere(function ($q) use ($bulan, $tahun) {
                     $q->whereMonth('tanggal_selesai', $bulan)
-                      ->whereYear('tanggal_selesai', $tahun);
+                        ->whereYear('tanggal_selesai', $tahun);
                 });
             })
             ->groupBy('user_id');
@@ -463,10 +466,10 @@ class PimpinanDashboardController extends Controller
                 ->where(function ($query) use ($bulan, $tahun) {
                     $query->where(function ($q) use ($bulan, $tahun) {
                         $q->whereMonth('tanggal_mulai', $bulan)
-                          ->whereYear('tanggal_mulai', $tahun);
+                            ->whereYear('tanggal_mulai', $tahun);
                     })->orWhere(function ($q) use ($bulan, $tahun) {
                         $q->whereMonth('tanggal_selesai', $bulan)
-                          ->whereYear('tanggal_selesai', $tahun);
+                            ->whereYear('tanggal_selesai', $tahun);
                     });
                 });
 
@@ -623,6 +626,68 @@ class PimpinanDashboardController extends Controller
         return response()->streamDownload(function () use ($bulan, $tahun, $viewType) {
             // Logic untuk generate Excel file
         }, 'absensi_' . $bulan . '_' . $tahun . '.xlsx');
+    }
+    private function getNotifications($bulan, $tahun)
+    {
+        // Notifikasi karyawan baru (1 bulan terakhir)
+        $newEmployees = User::where('role', 'karyawan')
+            ->where('created_at', '>=', now()->subMonth())
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'type' => 'new_employee',
+                    'title' => 'Karyawan Baru',
+                    'message' => $user->name . ' bergabung sebagai karyawan baru',
+                    'time' => Carbon::parse($user->created_at),
+                    'icon' => 'fas fa-user-plus text-success'
+                ];
+            });
+
+        // Notifikasi pengajuan izin/cuti/sakit/dinas
+        $permissions = Permission::with('user')
+            ->where('status', 'Disetujui')
+            ->where(function ($query) use ($bulan, $tahun) {
+                $query->where(function ($q) use ($bulan, $tahun) {
+                    $q->whereMonth('tanggal_mulai', $bulan)
+                        ->whereYear('tanggal_mulai', $tahun);
+                })->orWhere(function ($q) use ($bulan, $tahun) {
+                    $q->whereMonth('tanggal_selesai', $bulan)
+                        ->whereYear('tanggal_selesai', $tahun);
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($permission) {
+                return [
+                    'type' => 'permission',
+                    'title' => 'Pengajuan ' . $permission->keterangan,
+                    'message' => $permission->user->name . ' mengajukan ' . strtolower($permission->keterangan) .
+                        ' dari ' . Carbon::parse($permission->tanggal_mulai)->format('d M') .
+                        ' sampai ' . Carbon::parse($permission->tanggal_selesai)->format('d M'),
+                    'time' => Carbon::parse($permission->created_at),
+                    'icon' => $this->getPermissionIcon($permission->keterangan) // This now calls the method correctly
+                ];
+            });
+
+        return $newEmployees->merge($permissions)
+            ->sortByDesc('time')
+            ->take(10);
+    }
+    private function getPermissionIcon($type)
+    {
+        switch (strtolower($type)) {
+            case 'izin':
+                return 'fas fa-calendar-check text-info';
+            case 'cuti':
+                return 'fas fa-umbrella-beach text-warning';
+            case 'sakit':
+                return 'fas fa-heartbeat text-danger';
+            case 'perjalanan dinas':
+                return 'fas fa-plane text-primary';
+            default:
+                return 'fas fa-info-circle text-secondary';
+        }
     }
 
     public function exportPdf(Request $request)

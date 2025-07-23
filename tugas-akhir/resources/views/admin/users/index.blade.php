@@ -9,7 +9,7 @@
                 <h4 class="mb-0">Daftar Akun Karyawan</h4>
                 <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus d-inline d-sm-none"></i>
-                    <span class="d-none d-sm-inline">+ Tambah Karyawan</span>
+                    <span class="d-none d-sm-inline">+ Tambah Akun Karyawan</span>
                     <span class="d-inline d-sm-none">Tambah</span>
                 </a>
             </div>

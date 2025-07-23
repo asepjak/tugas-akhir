@@ -85,7 +85,9 @@ class VerifikasiPerizinanController extends Controller
                     Absensi::create([
                         'user_id' => $permission->user_id,
                         'tanggal' => $tanggalMulai->toDateString(),
-                        'status' => strtolower($permission->keterangan), // 'sakit' atau 'izin'
+                        'status' => strtolower($permission->keterangan),
+                        'jam' => '00:00:00',
+                        'ip_address' => '-', // atau isi string default lain
                     ]);
                 }
 

@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container py-4">
-    <h4 class="mb-3">Approval Cuti & Perjalanan Dinas</h4>
+    <h4 class="mb-3">Persetujuan Cuti & Perjalanan Dinas</h4>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>

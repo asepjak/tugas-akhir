@@ -39,10 +39,9 @@ class RekapAbsensiController extends Controller
                     'jumlah_izin' => $rekapData['izin'],
                     'jumlah_sakit' => $rekapData['sakit'],
                     'jumlah_terlambat' => $rekapData['terlambat'],
-                    'jumlah_total' => $rekapData['total_hadir_efektif'], // Backward compatibility
-                    'total_hadir_efektif' => $rekapData['total_hadir_efektif'], // Yang benar-benar masuk
-                    'total_tidak_masuk' => $rekapData['total_tidak_masuk'], // Izin + Sakit
-                    'total_keseluruhan' => $rekapData['total_keseluruhan'], // Total semua hari
+                    'total_hadir_efektif' => $rekapData['total_hadir_efektif'],
+                    'total_tidak_masuk' => $rekapData['total_tidak_masuk'],
+                    'total_keseluruhan' => $rekapData['total_keseluruhan'],
                     'tanpa_keterangan' => $rekapData['tanpa_keterangan'],
                     'detail_izin' => $rekapData['detail_izin'],
                     'detail_sakit' => $rekapData['detail_sakit'],
@@ -76,10 +75,10 @@ class RekapAbsensiController extends Controller
                     'Izin' => $rekapData['izin'],
                     'Sakit' => $rekapData['sakit'],
                     'Terlambat' => $rekapData['terlambat'],
-                    'Total Hadir Efektif' => $rekapData['total_hadir_efektif'], // Yang benar-benar masuk
-                    'Total Tidak Masuk' => $rekapData['total_tidak_masuk'], // Izin + Sakit
+                    'Total Hadir Efektif' => $rekapData['total_hadir_efektif'],
+                    'Total Tidak Masuk' => $rekapData['total_tidak_masuk'],
                     'Tanpa Keterangan' => $rekapData['tanpa_keterangan'],
-                    'Total Keseluruhan' => $rekapData['total_keseluruhan'], // Total semua hari
+                    'Total Keseluruhan' => $rekapData['total_keseluruhan'],
                     'Detail Izin' => $rekapData['detail_izin_text'],
                     'Detail Sakit' => $rekapData['detail_sakit_text'],
                 ];
@@ -131,11 +130,10 @@ class RekapAbsensiController extends Controller
                     'izin' => $rekapData['izin'],
                     'sakit' => $rekapData['sakit'],
                     'terlambat' => $rekapData['terlambat'],
-                    'total' => $rekapData['total_hadir_efektif'], // Backward compatibility
-                    'total_hadir_efektif' => $rekapData['total_hadir_efektif'], // Yang benar-benar masuk
-                    'total_tidak_masuk' => $rekapData['total_tidak_masuk'], // Izin + Sakit
+                    'total_hadir_efektif' => $rekapData['total_hadir_efektif'],
+                    'total_tidak_masuk' => $rekapData['total_tidak_masuk'],
                     'tanpa_keterangan' => $rekapData['tanpa_keterangan'],
-                    'total_keseluruhan' => $rekapData['total_keseluruhan'], // Total semua hari
+                    'total_keseluruhan' => $rekapData['total_keseluruhan'],
                     'detail_izin' => $rekapData['detail_izin'],
                     'detail_sakit' => $rekapData['detail_sakit'],
                 ];
@@ -145,9 +143,6 @@ class RekapAbsensiController extends Controller
         return view('admin.rekap.print', compact('data', 'bulan', 'tahun', 'jumlahHariKerja'));
     }
 
-    /**
-     * Method untuk mendapatkan data detail izin dan sakit karyawan
-     */
     public function getDetailIzinSakit(Request $request)
     {
         $userId = $request->get('user_id');
@@ -181,9 +176,6 @@ class RekapAbsensiController extends Controller
         ]);
     }
 
-    /**
-     * Method untuk mendapatkan rekap data user
-     */
     private function getRekapDataUser($userId, $bulan, $tahun, $jumlahHariKerja)
     {
         // Ambil data absensi dari tabel absensi
@@ -195,115 +187,160 @@ class RekapAbsensiController extends Controller
         // Ambil data izin dan sakit dari tabel permissions yang sudah disetujui
         $permissions = Permission::where('user_id', $userId)
             ->where('status', 'Disetujui')
-            ->where(function($query) use ($bulan, $tahun) {
-                $query->where(function($q) use ($bulan, $tahun) {
-                    $q->whereMonth('tanggal_mulai', $bulan)
-                      ->whereYear('tanggal_mulai', $tahun);
-                })->orWhere(function($q) use ($bulan, $tahun) {
-                    $q->whereMonth('tanggal_selesai', $bulan)
-                      ->whereYear('tanggal_selesai', $tahun);
-                })->orWhere(function($q) use ($bulan, $tahun) {
-                    $startOfMonth = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth();
-                    $endOfMonth = $startOfMonth->copy()->endOfMonth();
-                    $q->where('tanggal_mulai', '<=', $startOfMonth)
-                      ->where('tanggal_selesai', '>=', $endOfMonth);
-                });
-            })
             ->whereIn('keterangan', ['Izin', 'Sakit'])
             ->get();
 
-        if ($absensi->count() == 0 && $permissions->count() == 0) {
+        // Filter permissions berdasarkan periode bulan/tahun yang diminta
+        $filteredPermissions = $permissions->filter(function($permission) use ($bulan, $tahun) {
+            return $this->isPermissionInMonth($permission, $bulan, $tahun);
+        });
+
+        if ($absensi->count() == 0 && $filteredPermissions->count() == 0) {
             return null;
         }
 
         // Hitung data dari absensi
         $hadirTepat = $absensi->where('status', 'hadir')->count();
         $terlambat = $absensi->where('status', 'terlambat')->count();
-        $hadir = $hadirTepat + $terlambat; // Total yang benar-benar hadir ke kantor
+        $hadir = $hadirTepat + $terlambat;
         $izinFromAbsensi = $absensi->where('status', 'izin')->count();
         $sakitFromAbsensi = $absensi->where('status', 'sakit')->count();
 
         // Hitung data dari permissions dan buat detail
-        $izinFromPermissions = 0;
-        $sakitFromPermissions = 0;
+        $izinDays = [];
+        $sakitDays = [];
         $detailIzin = [];
         $detailSakit = [];
 
-        foreach ($permissions as $permission) {
-            $tanggalMulai = Carbon::parse($permission->tanggal_mulai);
-            $tanggalSelesai = Carbon::parse($permission->tanggal_selesai);
+        // Dapatkan tanggal yang sudah tercatat di tabel absensi untuk menghindari duplikasi
+        $tanggalAbsensi = $absensi->pluck('tanggal')->map(function($date) {
+            return Carbon::parse($date)->format('Y-m-d');
+        })->toArray();
 
-            // Hitung hari dalam bulan yang diminta
-            $startOfMonth = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth();
-            $endOfMonth = $startOfMonth->copy()->endOfMonth();
+        foreach ($filteredPermissions as $permission) {
+            $processedData = $this->processPermissionData($permission, $bulan, $tahun, $tanggalAbsensi);
 
-            $actualStart = $tanggalMulai->max($startOfMonth);
-            $actualEnd = $tanggalSelesai->min($endOfMonth);
-
-            if ($actualStart->lte($actualEnd)) {
-                $jumlahHari = $actualStart->diffInDays($actualEnd) + 1;
-
-                if ($permission->keterangan == 'Izin') {
-                    $izinFromPermissions += $jumlahHari;
-                    $detailIzin[] = [
-                        'tanggal_mulai' => $actualStart->format('Y-m-d'),
-                        'tanggal_selesai' => $actualEnd->format('Y-m-d'),
-                        'jumlah_hari' => $jumlahHari,
-                        'alasan' => $permission->alasan,
-                        'original_start' => $permission->tanggal_mulai,
-                        'original_end' => $permission->tanggal_selesai,
-                    ];
-                } elseif ($permission->keterangan == 'Sakit') {
-                    $sakitFromPermissions += $jumlahHari;
-                    $detailSakit[] = [
-                        'tanggal_mulai' => $actualStart->format('Y-m-d'),
-                        'tanggal_selesai' => $actualEnd->format('Y-m-d'),
-                        'jumlah_hari' => $jumlahHari,
-                        'alasan' => $permission->alasan,
-                        'original_start' => $permission->tanggal_mulai,
-                        'original_end' => $permission->tanggal_selesai,
-                    ];
+            if ($permission->keterangan == 'Izin') {
+                foreach ($processedData['dates'] as $date) {
+                    if (!in_array($date, $izinDays)) {
+                        $izinDays[] = $date;
+                    }
                 }
+                $detailIzin = array_merge($detailIzin, $processedData['details']);
+            } elseif ($permission->keterangan == 'Sakit') {
+                foreach ($processedData['dates'] as $date) {
+                    if (!in_array($date, $sakitDays)) {
+                        $sakitDays[] = $date;
+                    }
+                }
+                $detailSakit = array_merge($detailSakit, $processedData['details']);
             }
         }
+
+        // Hitung total izin dan sakit berdasarkan unique days
+        $izinFromPermissions = count($izinDays);
+        $sakitFromPermissions = count($sakitDays);
 
         $totalIzin = $izinFromAbsensi + $izinFromPermissions;
         $totalSakit = $sakitFromAbsensi + $sakitFromPermissions;
 
-        // Total absen = hadir + izin + sakit + tanpa keterangan
-        // Tapi untuk perhitungan tanpa keterangan, izin dan sakit tidak dihitung sebagai kehadiran
-        $totalHadirEfektif = $hadir; // Hanya yang benar-benar hadir (hadir + terlambat)
-        $totalTidakMasuk = $totalIzin + $totalSakit; // Yang tidak masuk tapi ada keterangan
-        $tanpaKeterangan = $jumlahHariKerja > 0 ? max(0, $jumlahHariKerja - $totalHadirEfektif - $totalTidakMasuk) : 0;
+        // PERBAIKAN: Logika perhitungan total absen
+        // Total absen dimulai dari 0, lalu:
+        // - Ditambah 1 untuk setiap kehadiran (hadir + terlambat)
+        // - Izin dan sakit TIDAK menambah total absen (mereka tetap dihitung terpisah)
 
-        // Total keseluruhan hari kerja yang tercatat
-        $totalKeseluruhan = $totalHadirEfektif + $totalTidakMasuk + $tanpaKeterangan;
+        // Total hadir efektif = jumlah hari yang benar-benar hadir (hadir + terlambat)
+        $totalHadirEfektif = $hadir; // ini adalah jumlah hari hadir + terlambat
+
+        // Total tidak masuk = jumlah hari izin + sakit
+        $totalTidakMasuk = $totalIzin + $totalSakit;
+
+        // Total keseluruhan = total hadir efektif + total tidak masuk
+        // (ini menunjukkan total hari yang tercatat dalam sistem)
+        $totalKeseluruhan = $totalHadirEfektif + $totalTidakMasuk;
+
+        // Tanpa keterangan = hari kerja - total keseluruhan
+        $tanpaKeterangan = $jumlahHariKerja > 0 ? max(0, $jumlahHariKerja - $totalKeseluruhan) : 0;
+
+        // Update total keseluruhan dengan menambahkan tanpa keterangan
+        $totalKeseluruhan = $totalKeseluruhan + $tanpaKeterangan;
 
         return [
             'hadir' => $hadir,
             'izin' => $totalIzin,
             'sakit' => $totalSakit,
             'terlambat' => $terlambat,
-            'total' => $totalHadirEfektif, // Backward compatibility (untuk view lama)
-            'jumlah_total' => $totalHadirEfektif, // Backward compatibility (untuk view lama)
-            'total_hadir_efektif' => $totalHadirEfektif, // Yang benar-benar masuk kerja
-            'total_tidak_masuk' => $totalTidakMasuk, // Yang tidak masuk tapi ada keterangan
-            'total_keseluruhan' => $totalKeseluruhan, // Total semua hari kerja
+            'total_hadir_efektif' => $totalHadirEfektif, // Hanya kehadiran yang menambah total absen
+            'total_tidak_masuk' => $totalTidakMasuk,
+            'total_keseluruhan' => $totalKeseluruhan,
             'tanpa_keterangan' => $tanpaKeterangan,
             'detail_izin' => $detailIzin,
             'detail_sakit' => $detailSakit,
             'detail_izin_text' => $this->formatDetailText($detailIzin),
             'detail_sakit_text' => $this->formatDetailText($detailSakit),
-
-            // Additional computed fields for convenience
             'persentase_kehadiran' => $this->hitungPersentaseKehadiran($totalHadirEfektif, $jumlahHariKerja),
             'jumlah_hari_kerja' => $jumlahHariKerja,
         ];
     }
 
-    /**
-     * Method untuk menghitung hari kerja
-     */
+    private function isPermissionInMonth($permission, $bulan, $tahun)
+    {
+        $startOfMonth = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth();
+        $endOfMonth = $startOfMonth->copy()->endOfMonth();
+
+        $tanggalMulai = Carbon::parse($permission->tanggal_mulai);
+        $tanggalSelesai = Carbon::parse($permission->tanggal_selesai);
+
+        return !($tanggalSelesai->lt($startOfMonth) || $tanggalMulai->gt($endOfMonth));
+    }
+
+    private function processPermissionData($permission, $bulan, $tahun, $tanggalAbsensi = [])
+    {
+        $startOfMonth = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth();
+        $endOfMonth = $startOfMonth->copy()->endOfMonth();
+
+        $tanggalMulai = Carbon::parse($permission->tanggal_mulai);
+        $tanggalSelesai = Carbon::parse($permission->tanggal_selesai);
+
+        // Ambil tanggal yang overlap dengan bulan yang diminta
+        $actualStart = $tanggalMulai->max($startOfMonth);
+        $actualEnd = $tanggalSelesai->min($endOfMonth);
+
+        $dates = [];
+        $details = [];
+
+        // Hitung hari kerja (Senin-Jumat) dalam periode tersebut
+        for ($date = $actualStart->copy(); $date->lte($actualEnd); $date->addDay()) {
+            // Hanya hitung hari kerja (Senin-Jumat)
+            if ($date->isWeekday()) {
+                $dateString = $date->format('Y-m-d');
+
+                // Periksa apakah tanggal ini sudah ada di tabel absensi
+                if (!in_array($dateString, $tanggalAbsensi)) {
+                    $dates[] = $dateString;
+                }
+            }
+        }
+
+        if (count($dates) > 0) {
+            $details[] = [
+                'tanggal_mulai' => $actualStart->format('Y-m-d'),
+                'tanggal_selesai' => $actualEnd->format('Y-m-d'),
+                'jumlah_hari' => count($dates),
+                'alasan' => $permission->alasan,
+                'original_start' => $permission->tanggal_mulai,
+                'original_end' => $permission->tanggal_selesai,
+                'keterangan' => $permission->keterangan,
+                'dates' => $dates,
+            ];
+        }
+
+        return [
+            'dates' => $dates,
+            'details' => $details
+        ];
+    }
+
     private function hitungHariKerja($tahun, $bulan)
     {
         $jumlahHariKerja = 0;
@@ -319,9 +356,6 @@ class RekapAbsensiController extends Controller
         return $jumlahHariKerja;
     }
 
-    /**
-     * Method untuk format detail text untuk export
-     */
     private function formatDetailText($details)
     {
         if (empty($details)) {
@@ -340,9 +374,6 @@ class RekapAbsensiController extends Controller
         return rtrim($text, '; ');
     }
 
-    /**
-     * Method untuk menghitung persentase kehadiran
-     */
     public function hitungPersentaseKehadiran($totalHadirEfektif, $jumlahHariKerja)
     {
         if ($jumlahHariKerja == 0) {
@@ -352,9 +383,6 @@ class RekapAbsensiController extends Controller
         return round(($totalHadirEfektif / $jumlahHariKerja) * 100, 2);
     }
 
-    /**
-     * Method untuk mendapatkan statistik kehadiran
-     */
     public function getStatistikKehadiran(Request $request)
     {
         $bulan = $request->get('bulan', date('m'));
@@ -391,10 +419,6 @@ class RekapAbsensiController extends Controller
         return response()->json($statistik);
     }
 
-    /**
-     * Method untuk debugging - menampilkan struktur data
-     * Route: GET /admin/rekap/debug-data?user_id=1&bulan=12&tahun=2024
-     */
     public function debugRekapData(Request $request)
     {
         $userId = $request->get('user_id');
@@ -408,30 +432,43 @@ class RekapAbsensiController extends Controller
         $jumlahHariKerja = $this->hitungHariKerja($tahun, $bulan);
         $rekapData = $this->getRekapDataUser($userId, $bulan, $tahun, $jumlahHariKerja);
 
+        $absensi = Absensi::where('user_id', $userId)
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->get();
+
+        $permissions = Permission::where('user_id', $userId)
+            ->where('status', 'Disetujui')
+            ->whereIn('keterangan', ['Izin', 'Sakit'])
+            ->get();
+
         return response()->json([
             'user_id' => $userId,
             'bulan' => $bulan,
             'tahun' => $tahun,
             'jumlah_hari_kerja' => $jumlahHariKerja,
             'rekap_data' => $rekapData,
+            'debug_info' => [
+                'absensi_count' => $absensi->count(),
+                'permissions_count' => $permissions->count(),
+                'absensi_data' => $absensi->toArray(),
+                'permissions_data' => $permissions->toArray(),
+            ],
             'available_keys' => $rekapData ? array_keys($rekapData) : [],
         ]);
     }
 
-    /**
-     * Method untuk memastikan data array memiliki semua key yang diperlukan
-     */
     private function ensureDataIntegrity($data)
     {
         $requiredKeys = [
             'user', 'jumlah_hadir', 'jumlah_izin', 'jumlah_sakit', 'jumlah_terlambat',
-            'jumlah_total', 'total_hadir_efektif', 'total_tidak_masuk', 'total_keseluruhan',
+            'total_hadir_efektif', 'total_tidak_masuk', 'total_keseluruhan',
             'tanpa_keterangan', 'detail_izin', 'detail_sakit'
         ];
 
         foreach ($requiredKeys as $key) {
             if (!isset($data[$key])) {
-                $data[$key] = 0; // Default value for numeric fields
+                $data[$key] = 0;
                 if (in_array($key, ['user', 'detail_izin', 'detail_sakit'])) {
                     $data[$key] = $key === 'user' ? null : [];
                 }

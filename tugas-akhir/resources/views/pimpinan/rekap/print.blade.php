@@ -50,8 +50,7 @@
                 <th>Izin</th>
                 <th>Sakit</th>
                 <th>Terlambat</th>
-                <th>Tanpa Keterangan</th>
-                <th>Total Absen</th>
+                <th>Total</th>
             </tr>
         </thead>
         <tbody>
@@ -59,16 +58,15 @@
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td>{{ $item['user']->nama ?? $item['user']->name }}</td>
-                    <td>{{ $item['jumlah_hadir'] }}</td>
-                    <td>{{ $item['jumlah_izin'] }}</td>
-                    <td>{{ $item['jumlah_sakit'] }}</td>
-                    <td>{{ $item['jumlah_terlambat'] }}</td>
-                    <td>{{ $item['tanpa_keterangan'] }}</td>
-                    <td>{{ $item['total_hadir_efektif'] }}</td>
+                    <td>{{ $item['hadir'] }}</td>
+                    <td>{{ $item['izin'] }}</td>
+                    <td>{{ $item['sakit'] }}</td>
+                    <td>{{ $item['terlambat'] }}</td>
+                    <td>{{ $item['total'] }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8">Tidak ada data.</td>
+                    <td colspan="7">Tidak ada data.</td>
                 </tr>
             @endforelse
         </tbody>
