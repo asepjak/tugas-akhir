@@ -20,6 +20,10 @@ return new class extends Migration
             $table->string('password');
             $table->enum('role', ['karyawan', 'admin', 'pimpinan'])->default('karyawan');
             $table->rememberToken();
+            $table->string('reset_token')->nullable(); // ← Tambahan
+            $table->string('device_token')->nullable(); // ✅ Tambahan device_token
+
+
 
             // Kolom tambahan profil
             $table->string('nama')->nullable();

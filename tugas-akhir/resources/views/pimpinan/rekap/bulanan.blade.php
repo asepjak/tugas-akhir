@@ -67,9 +67,11 @@
                             <td class="text-center fw-bold">{{ $item['total_keseluruhan'] }}</td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-info detail-btn"
+                                        type="button"
                                         data-user-id="{{ $item['user']->id }}"
                                         data-bulan="{{ $bulan }}"
-                                        data-tahun="{{ $tahun }}">
+                                        data-tahun="{{ $tahun }}"
+                                        title="Lihat Detail Absensi">
                                     <i class="fas fa-info-circle"></i> Detail
                                 </button>
                             </td>
@@ -96,52 +98,55 @@
             <div class="modal-body">
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <h6>Nama Karyawan: <span id="detail-nama"></span></h6>
+                        <h6>Nama Karyawan: <span id="detail-nama">-</span></h6>
                     </div>
                     <div class="col-md-6">
-                        <h6>Periode: <span id="detail-periode"></span></h6>
+                        <h6>Periode: <span id="detail-periode">-</span></h6>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="card mb-3">
+                        <div class="card mb-3 shadow-sm">
                             <div class="card-header bg-info text-white">
-                                <h6 class="mb-0">Detail Izin</h6>
+                                <strong>Detail Izin</strong>
                             </div>
-                            <div class="card-body" id="detail-izin">
-                                <!-- Content will be loaded via AJAX -->
+                            <div class="card-body p-2" id="detail-izin">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-spinner fa-spin"></i> Memuat...
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card mb-3">
+                        <div class="card mb-3 shadow-sm">
                             <div class="card-header bg-warning text-dark">
-                                <h6 class="mb-0">Detail Sakit</h6>
+                                <strong>Detail Sakit</strong>
                             </div>
-                            <div class="card-body" id="detail-sakit">
-                                <!-- Content will be loaded via AJAX -->
+                            <div class="card-body p-2" id="detail-sakit">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-spinner fa-spin"></i> Memuat...
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card shadow-sm">
                     <div class="card-header bg-secondary text-white">
-                        <h6 class="mb-0">Ringkasan</h6>
+                        <strong>Ringkasan Kehadiran</strong>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <p>Total Hadir Efektif: <span id="summary-hadir" class="fw-bold"></span></p>
-                            </div>
-                            <div class="col-md-4">
-                                <p>Total Tidak Masuk: <span id="summary-tidak-masuk" class="fw-bold"></span></p>
-                            </div>
-                            <div class="col-md-4">
-                                <p>Total Keseluruhan: <span id="summary-total" class="fw-bold"></span></p>
-                            </div>
-                        </div>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Total Hadir Efektif:</dt>
+                            <dd class="col-sm-8" id="summary-hadir">-</dd>
+
+                            <dt class="col-sm-4">Total Tidak Masuk:</dt>
+                            <dd class="col-sm-8" id="summary-tidak-masuk">-</dd>
+
+                            <dt class="col-sm-4">Total Hari Kerja:</dt>
+                            <dd class="col-sm-8" id="summary-total">-</dd>
+                        </dl>
                     </div>
                 </div>
             </div>
@@ -154,88 +159,198 @@
 
 @endsection
 
+@push('styles')
+<style>
+.detail-btn {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.detail-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.detail-btn:active {
+    transform: translateY(0);
+}
+
+.modal-dialog {
+    max-width: 90%;
+}
+
+@media (min-width: 992px) {
+    .modal-dialog {
+        max-width: 900px;
+    }
+}
+</style>
+@endpush
+
 @push('scripts')
 <script>
-$(document).ready(function() {
-    // Handle detail button click
-    $('.detail-btn').click(function() {
-        const userId = $(this).data('user-id');
-        const bulan = $(this).data('bulan');
-        const tahun = $(this).data('tahun');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
 
-        // Show loading state
-        $('#detail-nama').text('Memuat...');
-        $('#detail-periode').text(`${bulan}/${tahun}`);
-        $('#detail-izin').html('<p class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat data...</p>');
-        $('#detail-sakit').html('<p class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat data...</p>');
+    // Pastikan Bootstrap dan jQuery tersedia
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap is not loaded');
+        return;
+    }
 
-        // Fetch data via AJAX
-        $.ajax({
-            url: '{{ route("pimpinan.rekap.detail") }}',
+    // Event listener untuk tombol detail
+    document.addEventListener('click', function(e) {
+        // Cek apakah yang diklik adalah tombol detail atau elemen di dalamnya
+        const detailBtn = e.target.closest('.detail-btn');
+
+        if (detailBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            console.log('Detail button clicked');
+
+            const userId = detailBtn.getAttribute('data-user-id');
+            const bulan = detailBtn.getAttribute('data-bulan');
+            const tahun = detailBtn.getAttribute('data-tahun');
+
+            console.log('Data:', {userId, bulan, tahun});
+
+            if (!userId || !bulan || !tahun) {
+                alert('Data tidak lengkap');
+                return;
+            }
+
+            // Reset modal content
+            document.getElementById('detail-nama').textContent = 'Memuat...';
+            document.getElementById('detail-periode').textContent = `${bulan}/${tahun}`;
+
+            const loadingHtml = '<div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>';
+            document.getElementById('detail-izin').innerHTML = loadingHtml;
+            document.getElementById('detail-sakit').innerHTML = loadingHtml;
+
+            document.getElementById('summary-hadir').textContent = '-';
+            document.getElementById('summary-tidak-masuk').textContent = '-';
+            document.getElementById('summary-total').textContent = '-';
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+            modal.show();
+
+            // Fetch data
+            fetchDetailData(userId, bulan, tahun);
+        }
+    });
+
+    function fetchDetailData(userId, bulan, tahun) {
+        // Buat URL dengan parameter - sesuaikan dengan route yang ada
+        const baseUrl = '{{ url('/') }}';
+        const url = new URL(baseUrl + '/pimpinan/rekap/detail');
+        url.searchParams.append('user_id', userId);
+        url.searchParams.append('bulan', bulan);
+        url.searchParams.append('tahun', tahun);
+
+        console.log('Fetching URL:', url.toString());
+
+        fetch(url, {
             method: 'GET',
-            data: {
-                user_id: userId,
-                bulan: bulan,
-                tahun: tahun
-            },
-            success: function(response) {
-                // Update modal content
-                $('#detail-nama').text(response.user.nama || response.user.name);
-                $('#detail-periode').text(`${response.bulan}/${response.tahun}`);
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
 
-                // Update izin details
-                if (response.detail_izin.length > 0) {
-                    let izinHtml = '<ul class="list-group list-group-flush">';
-                    response.detail_izin.forEach(item => {
-                        izinHtml += `
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-between">
-                                    <span>${item.tanggal_mulai} - ${item.tanggal_selesai}</span>
-                                    <span class="badge bg-primary">${item.jumlah_hari} hari</span>
-                                </div>
-                                <div class="text-muted mt-1">${item.alasan || 'Tidak ada keterangan'}</div>
-                            </li>
-                        `;
-                    });
-                    izinHtml += '</ul>';
-                    $('#detail-izin').html(izinHtml);
-                } else {
-                    $('#detail-izin').html('<p class="text-muted">Tidak ada data izin</p>');
+            // Clone response to read as text for debugging
+            return response.clone().text().then(text => {
+                console.log('Raw response:', text);
+
+                // Try to parse as JSON
+                try {
+                    const data = JSON.parse(text);
+                    if (!response.ok) {
+                        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                    }
+                    return data;
+                } catch (e) {
+                    console.error('JSON parse error:', e);
+                    console.error('Response text:', text);
+                    throw new Error('Invalid JSON response from server');
                 }
+            });
+        })
+        .then(data => {
+            console.log('Parsed response data:', data);
 
-                // Update sakit details
-                if (response.detail_sakit.length > 0) {
-                    let sakitHtml = '<ul class="list-group list-group-flush">';
-                    response.detail_sakit.forEach(item => {
-                        sakitHtml += `
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-between">
-                                    <span>${item.tanggal_mulai} - ${item.tanggal_selesai}</span>
-                                    <span class="badge bg-warning text-dark">${item.jumlah_hari} hari</span>
-                                </div>
-                                <div class="text-muted mt-1">${item.alasan || 'Tidak ada keterangan'}</div>
-                            </li>
-                        `;
-                    });
-                    sakitHtml += '</ul>';
-                    $('#detail-sakit').html(sakitHtml);
-                } else {
-                    $('#detail-sakit').html('<p class="text-muted">Tidak ada data sakit</p>');
-                }
+            if (data.success) {
+                updateModalContent(data);
+            } else {
+                throw new Error(data.message || 'Server returned success: false');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
 
-                // Update summary
-                $('#summary-hadir').text(response.summary.total_hadir_efektif);
-                $('#summary-tidak-masuk').text(response.summary.total_tidak_masuk);
-                $('#summary-total').text(response.summary.total_keseluruhan);
+            const errorHtml = `<p class="text-danger"><i class="fas fa-exclamation-triangle"></i> ${error.message}</p>`;
+            document.getElementById('detail-izin').innerHTML = errorHtml;
+            document.getElementById('detail-sakit').innerHTML = errorHtml;
 
-                // Show modal
-                $('#detailModal').modal('show');
-            },
-            error: function() {
-                alert('Gagal memuat data detail');
+            // Show more user-friendly error message
+            if (error.message.includes('404')) {
+                alert('Data tidak ditemukan atau route belum terdaftar');
+            } else if (error.message.includes('500')) {
+                alert('Server error - silakan coba lagi atau hubungi administrator');
+            } else {
+                alert('Gagal memuat data: ' + error.message);
             }
         });
-    });
+    }
+
+    function updateModalContent(response) {
+        // Update nama dan periode
+        document.getElementById('detail-nama').textContent = response.user.nama || response.user.name || 'N/A';
+        document.getElementById('detail-periode').textContent = `${response.bulan}/${response.tahun}`;
+
+        // Update detail izin
+        updateDetailSection('detail-izin', response.detail_izin, 'primary', 'Tidak ada data izin');
+
+        // Update detail sakit
+        updateDetailSection('detail-sakit', response.detail_sakit, 'warning', 'Tidak ada data sakit', 'text-dark');
+
+        // Update summary
+        if (response.summary) {
+            document.getElementById('summary-hadir').textContent = (response.summary.total_hadir_efektif || 0) + ' hari';
+            document.getElementById('summary-tidak-masuk').textContent = (response.summary.total_tidak_masuk || 0) + ' hari';
+            document.getElementById('summary-total').textContent = (response.summary.total_keseluruhan || 0) + ' hari';
+        }
+    }
+
+    function updateDetailSection(elementId, data, badgeClass, emptyMessage, textClass = '') {
+        const element = document.getElementById(elementId);
+
+        if (data && data.length > 0) {
+            let html = '<ul class="list-group list-group-flush">';
+
+            data.forEach(item => {
+                html += `
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-medium">${item.tanggal_mulai} - ${item.tanggal_selesai}</span>
+                        <span class="badge bg-${badgeClass} ${textClass}">${item.jumlah_hari} hari</span>
+                    </div>
+                    <div class="text-muted small mt-1">${item.alasan || 'Tidak ada keterangan'}</div>
+                </li>`;
+            });
+
+            html += '</ul>';
+            element.innerHTML = html;
+        } else {
+            element.innerHTML = `<p class="text-muted mb-0 text-center py-3">${emptyMessage}</p>`;
+        }
+    }
 });
 </script>
 @endpush

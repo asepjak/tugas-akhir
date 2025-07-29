@@ -84,6 +84,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/admin/rekap/cetak', [RekapAbsensiController::class, 'print'])->name('admin.rekap.bulanan.print');
     // Route::put('/verifikasi/permissions/{id}', [VerifikasiPerizinanController::class, 'updateStatus'])->name('verifikasi.updateStatus');
 
+    Route::post('/users/{user}/reset-token', [UserManagementController::class, 'resetToken'])->name('admin.users.resetToken');
 
     // Lihat semua data izin karyawan
     Route::get('/permissions', [VerifikasiPerizinanController::class, 'permissions'])->name('verifikasi.permissions');

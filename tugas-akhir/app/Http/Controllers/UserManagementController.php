@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
 
 class UserManagementController extends Controller
 {
@@ -55,7 +57,15 @@ class UserManagementController extends Controller
 
         return redirect()->route('admin.users.index')->with('success', 'Akun karyawan berhasil ditambahkan.');
     }
+    public function resetToken(Request $request, User $user)
+    {
+        $newToken = Str::random(60);
 
+        $user->device_token = $newToken;
+        $user->save();
+
+        return back()->with('success', 'Token berhasil direset. Token baru: ' . $newToken);
+    }
     public function edit(User $user)
     {
         return view('admin.users.edit', compact('user'));

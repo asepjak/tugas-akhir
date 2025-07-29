@@ -35,7 +35,8 @@ class RekapAbsensiController extends Controller
             if ($rekapData) {
                 $dataItem = [
                     'user' => $user,
-                    'jumlah_hadir' => $rekapData['hadir'],
+                    // FIXED: Use the same keys as returned by getRekapDataUser()
+                    'jumlah_hadir' => $rekapData['hadir'], // Maps to 'hadir' from getRekapDataUser
                     'jumlah_izin' => $rekapData['izin'],
                     'jumlah_sakit' => $rekapData['sakit'],
                     'jumlah_terlambat' => $rekapData['terlambat'],
@@ -126,10 +127,11 @@ class RekapAbsensiController extends Controller
             if ($rekapData) {
                 $data[] = [
                     'user' => $user,
-                    'hadir' => $rekapData['hadir'],
-                    'izin' => $rekapData['izin'],
-                    'sakit' => $rekapData['sakit'],
-                    'terlambat' => $rekapData['terlambat'],
+                    // FIXED: Use keys that match the view expectations
+                    'jumlah_hadir' => $rekapData['hadir'],
+                    'jumlah_izin' => $rekapData['izin'],
+                    'jumlah_sakit' => $rekapData['sakit'],
+                    'jumlah_terlambat' => $rekapData['terlambat'],
                     'total_hadir_efektif' => $rekapData['total_hadir_efektif'],
                     'total_tidak_masuk' => $rekapData['total_tidak_masuk'],
                     'tanpa_keterangan' => $rekapData['tanpa_keterangan'],

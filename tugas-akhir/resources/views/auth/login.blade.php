@@ -418,8 +418,7 @@
         <div class="login-right">
             <div class="login-form">
                 <h2 class="login-title">Masuk ke Akun</h2>
-                <p class="login-subtitle">Gunakan kredensial Anda untuk mengakses sistem</p>
-
+                <p>Selamat Datang Sistem Presensi Digital PT.   Cargomas Cakrawala</p>
                 <!-- Laravel error messages -->
                 @if ($errors->any())
                     <div class="alert alert-danger">

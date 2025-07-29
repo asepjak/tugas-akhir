@@ -1,197 +1,88 @@
 @extends('layouts.admin-app')
 
-@section('content')
-<div class="container-fluid px-3 px-md-4 py-4">
-    <!-- Header Section -->
-    <div class="row mb-3 mb-md-4">
-        <div class="col-12">
-            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 gap-sm-3">
-                <h4 class="mb-0">Daftar Akun Karyawan</h4>
-                <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus d-inline d-sm-none"></i>
-                    <span class="d-none d-sm-inline">+ Tambah Akun Karyawan</span>
-                    <span class="d-inline d-sm-none">Tambah</span>
-                </a>
-            </div>
-        </div>
-    </div>
+@section('title', 'Manajemen User')
 
-    <!-- Success Alert -->
-    @if(session('success'))
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            </div>
+@section('content')
+<div class="container py-4">
+    <h4 class="fw-bold text-uppercase text-center mb-4">Manajemen User</h4>
+
+    <!-- Alert Messages -->
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
-    <!-- Table Section -->
-    <div class="row">
-        <div class="col-12">
-            <!-- Desktop Table (Hidden on mobile) -->
-            <div class="d-none d-lg-block">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Nama</th>
-                                <th>Email</th>
-                                <th>Username</th>
-                                <th>Jabatan</th>
-                                <th>Status</th>
-                                <th width="100">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($users as $user)
-                            <tr>
-                                <td>{{ $user->nama }}</td>
-                                <td>{{ $user->email }}</td>
-                                <td>{{ $user->username }}</td>
-                                <td>{{ $user->jabatan }}</td>
-                                <td>
-                                    <span class="badge {{ $user->status == 'aktif' ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ ucfirst($user->status) }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="{{ route('admin.users.edit', $user->id) }}"
-                                       class="btn btn-sm btn-warning">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <!-- Tabel Desktop -->
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark text-center">
+                <tr>
+                    <th>No</th>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Token</th> <!-- kolom token opsional -->
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                @forelse ($users as $user)
+                    <tr>
+                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ $user->name }}</td>
+                        <td>{{ $user->email }}</td>
+                        <td>{{ ucfirst($user->role) }}</td>
+                        <td>{{ $user->reset_token ?? '-' }}</td>
+                        <td class="d-flex gap-1 justify-content-center">
+                            <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <form action="{{ route('admin.users.resetToken', $user->id) }}" method="POST" onsubmit="return confirm('Reset token untuk {{ $user->name }}?')">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-key"></i> Reset Token
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6">Tidak ada data user.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 
-            <!-- Tablet Table (Hidden on mobile and large screens) -->
-            <div class="d-none d-md-block d-lg-none">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Karyawan</th>
-                                <th>Jabatan</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($users as $user)
-                            <tr>
-                                <td>
-                                    <div class="fw-bold">{{ $user->nama }}</div>
-                                    <div class="text-muted small">{{ $user->email }}</div>
-                                    <div class="text-muted small">@{{ $user->username }}</div>
-                                </td>
-                                <td>{{ $user->jabatan }}</td>
-                                <td>
-                                    <span class="badge {{ $user->status == 'aktif' ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ ucfirst($user->status) }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="{{ route('admin.users.edit', $user->id) }}"
-                                       class="btn btn-sm btn-warning">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Mobile Cards (Visible only on mobile) -->
-            <div class="d-block d-md-none">
-                @foreach ($users as $user)
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-8">
-                                <h6 class="card-title mb-1 fw-bold">{{ $user->nama }}</h6>
-                                <p class="card-text mb-1 text-muted small">
-                                    <i class="fas fa-envelope me-1"></i>{{ $user->email }}
-                                </p>
-                                <p class="card-text mb-1 text-muted small">
-                                    <i class="fas fa-user me-1"></i>@{{ $user->username }}
-                                </p>
-                                <p class="card-text mb-1">
-                                    <i class="fas fa-briefcase me-1"></i>{{ $user->jabatan }}
-                                </p>
-                                <span class="badge {{ $user->status == 'aktif' ? 'bg-success' : 'bg-secondary' }}">
-                                    {{ ucfirst($user->status) }}
-                                </span>
-                            </div>
-                            <div class="col-4 text-end">
-                                <a href="{{ route('admin.users.edit', $user->id) }}"
-                                   class="btn btn-sm btn-warning">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                            </div>
-                        </div>
+    <!-- Tampilan Mobile -->
+    <div class="d-md-none">
+        @forelse ($users as $user)
+            <div class="card mb-3">
+                <div class="card-body row">
+                    <div class="col-8">
+                        <h5 class="card-title">{{ $user->name }}</h5>
+                        <p class="card-text mb-1"><strong>Email:</strong> {{ $user->email }}</p>
+                        <p class="card-text mb-1"><strong>Role:</strong> {{ ucfirst($user->role) }}</p>
+                        <p class="card-text mb-1"><strong>Token:</strong> {{ $user->reset_token ?? '-' }}</p>
+                    </div>
+                    <div class="col-4 text-end">
+                        <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form action="{{ route('admin.users.resetToken', $user->id) }}" method="POST" onsubmit="return confirm('Reset token untuk {{ $user->name }}?')">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-danger mt-1">
+                                <i class="fas fa-key"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
-                @endforeach
             </div>
-        </div>
-    </div>
-
-    <!-- Pagination -->
-    <div class="row mt-3 mt-md-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-center">
-                {{ $users->links() }}
-            </div>
-        </div>
+        @empty
+            <p class="text-center">Tidak ada data user.</p>
+        @endforelse
     </div>
 </div>
-
-<!-- Custom Styles -->
-<style>
-@media (max-width: 767.98px) {
-    .container-fluid {
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-
-    .card {
-        border-radius: 8px;
-    }
-
-    .card-body {
-        padding: 1rem;
-    }
-}
-
-@media (min-width: 768px) and (max-width: 991.98px) {
-    .table td {
-        font-size: 0.9rem;
-    }
-}
-
-@media (min-width: 992px) {
-    .table td {
-        vertical-align: middle;
-    }
-}
-
-/* Custom pagination styling for mobile */
-@media (max-width: 576px) {
-    .pagination {
-        font-size: 0.8rem;
-    }
-
-    .page-link {
-        padding: 0.25rem 0.5rem;
-    }
-}
-</style>
 @endsection

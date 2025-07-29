@@ -7,6 +7,7 @@ use App\Models\Absensi;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cookie;
 
 class AbsensiController extends Controller
 {
@@ -53,6 +54,16 @@ class AbsensiController extends Controller
             return back()->with('error', 'Anda sudah absen masuk hari ini.');
         }
 
+        $user = Auth::user();
+
+        $cookieToken = $request->cookie('device_token');
+
+        // Validasi cookie dan database harus sama
+        if (!$cookieToken || $cookieToken !== $user->device_token) {
+            return back()->with('error', 'Akses absen ditolak. Silakan login di perangkat Anda sendiri.');
+        }
+
+
         // Perhitungan keterlambatan
         $tanggalHariIni = $now->toDateString();
         $jamMasukCarbon = Carbon::createFromFormat('Y-m-d H:i:s', $tanggalHariIni . ' ' . $jamMasuk);
@@ -87,7 +98,7 @@ class AbsensiController extends Controller
             : 'Absensi berhasil dicatat. Anda masuk tepat waktu.';
 
         return redirect()->route($this->getAbsensiRouteByRole($user->role))
-                         ->with('success', $message);
+            ->with('success', $message);
     }
 
     public function keluar(Request $request)
@@ -120,7 +131,7 @@ class AbsensiController extends Controller
         ]);
 
         return redirect()->route($this->getAbsensiRouteByRole($user->role))
-                         ->with('success', "Absen keluar berhasil pada jam {$jamKeluar}.");
+            ->with('success', "Absen keluar berhasil pada jam {$jamKeluar}.");
     }
 
     /**
@@ -191,7 +202,7 @@ class AbsensiController extends Controller
     private function getAllowedIps()
     {
         $ips = [
-            'local' => ['127.0.0.1', '::1', '10.10.8.194', '192.168.1.1'],
+            'local' => ['127.0.0.1', '::1', '10.10.8.194', '192.168.1.1', '172.16.5.58', '10.182.168.141'], 
             'staging' => ['10.10.8.194'],
             'production' => ['10.10.8.194']
         ];
@@ -251,6 +262,28 @@ class AbsensiController extends Controller
         return back()->with('success', $deleted
             ? 'Data absensi berhasil direset.'
             : 'Tidak ada data untuk direset.');
+    }
+    public function absenMasuk(Request $request)
+    {
+        $user = Auth::user();
+
+        $lastCookie = Cookie::get('last_absen_user');
+
+        // Cek apakah cookie sudah di-set sebelumnya untuk user yang sama
+        if ($lastCookie && $lastCookie == $user->id) {
+            return back()->with('error', 'Anda sudah absen masuk sebelumnya, tidak boleh titip absen.');
+        }
+
+        // Simpan data absensi masuk
+        $absensi = new Absensi();
+        $absensi->user_id = $user->id;
+        $absensi->waktu_masuk = now();
+        $absensi->save();
+
+        // Set cookie dengan ID user, expired dalam 8 jam
+        Cookie::queue('last_absen_user', $user->id, 60 * 8); // 8 jam
+
+        return back()->with('success', 'Absen masuk berhasil.');
     }
 
     /**
