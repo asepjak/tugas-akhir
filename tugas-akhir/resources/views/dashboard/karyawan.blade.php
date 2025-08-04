@@ -3,7 +3,6 @@
 @section('title', 'Dashboard Karyawan')
 
 @push('styles')
-    {{-- <link rel="stylesheet" href="{{ asset('css/dashboard-karyawan.css') }}?v={{ time() }}"> --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         .status-card {
@@ -23,19 +22,11 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .table td,
-        .table th {
+        .table td, .table th {
             vertical-align: middle;
         }
 
@@ -65,6 +56,14 @@
         .alert {
             border-radius: 0.5rem;
         }
+
+        .filter-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+        }
     </style>
 @endpush
 
@@ -81,8 +80,7 @@
                         </option>
                     @endforeach
                 </select>
-                <input type="number" name="year" value="{{ $year }}" class="form-control w-auto" min="2000"
-                    max="{{ now()->year }}">
+                <input type="number" name="year" value="{{ $year }}" class="form-control w-auto" min="2000" max="{{ now()->year }}">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-search"></i> Filter
                 </button>
@@ -127,11 +125,10 @@
                     </div>
                 </div>
             </div>
-            <!-- Tambahkan card ini setelah card Cuti -->
             <div class="col-md-3">
                 <div class="card status-card text-center shadow-sm border-0">
                     <div class="card-body py-4">
-                       <i class="bi bi-truck-front-fill fs-1 text-primary mb-3"></i>
+                        <i class="bi bi-truck-front-fill fs-1 text-primary mb-3"></i>
                         <h2 class="fw-bold text-primary">{{ $perjalanan ?? 0 }}</h2>
                         <p class="text-muted mb-0">Perjalanan</p>
                     </div>
@@ -143,6 +140,17 @@
         <div class="mt-5">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="fw-bold">Riwayat Ajuan</h4>
+            </div>
+
+            {{-- Info Filter --}}
+            <div class="filter-info fade-in">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <span>
+                        Menampilkan data untuk bulan
+                        <strong>{{ \Carbon\Carbon::create()->month($month)->isoFormat('MMMM') }} {{ $year }}</strong>
+                    </span>
+                </div>
             </div>
 
             @if (session('success'))
@@ -181,8 +189,7 @@
                                 </td>
                                 <td>
                                     @if ($izin->file_surat)
-                                        <a href="{{ asset('storage/' . $izin->file_surat) }}" target="_blank"
-                                            class="btn btn-sm btn-outline-primary">
+                                        <a href="{{ asset('storage/' . $izin->file_surat) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-file-earmark-text"></i> Lihat
                                         </a>
                                     @else
@@ -192,7 +199,9 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted">Belum ada data ajuan.</td>
+                                <td colspan="6" class="text-center text-muted">
+                                    Belum ada data ajuan untuk bulan {{ \Carbon\Carbon::create()->month($month)->isoFormat('MMMM') }} {{ $year }}.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -215,7 +224,8 @@
                         previous: "Sebelumnya",
                         next: "Berikutnya"
                     }
-                }
+                },
+                order: [[2, 'desc']]
             });
         });
     </script>

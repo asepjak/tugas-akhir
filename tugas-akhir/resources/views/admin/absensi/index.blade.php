@@ -413,7 +413,7 @@
                 <tr>
                     <th>📅 Tanggal</th>
                     <th>🕐 Jam Masuk</th>
-                    <th>🕔 Jam Keluar</th>
+                    <th>🕔 Jam Pulang</th>
                     <th>📊 Status</th>
                     <th>⏱️ Keterlambatan</th>
                 </tr>

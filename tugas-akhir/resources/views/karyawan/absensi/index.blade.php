@@ -2,424 +2,293 @@
 
 @section('content')
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --success-color: #4cc9f0;
-            --danger-color: #f72585;
-            --warning-color: #f8961e;
-            --info-color: #4895ef;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --border-radius: 12px;
-            --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
         .absensi-container {
-            max-width: 1000px;
-            margin: 2rem auto;
+            max-width: 900px;
+            margin: auto;
             background: #fff;
-            padding: 2.5rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #2d3748;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .absensi-container h1 {
             text-align: center;
-            margin-bottom: 2rem;
-            color: var(--primary-color);
-            font-weight: 700;
-            font-size: 2rem;
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-weight: 600;
         }
 
-        .alert {
-            padding: 1rem 1.25rem;
+        .alert-success,
+        .alert-error {
+            padding: 12px 16px;
             border-radius: 8px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 20px;
             font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            border-left: 4px solid transparent;
         }
 
         .alert-success {
-            background-color: #f0fdf4;
-            color: #166534;
-            border-left-color: #22c55e;
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
         }
 
         .alert-error {
-            background-color: #fef2f2;
-            color: #991b1b;
-            border-left-color: #ef4444;
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
         }
 
         .clock-section {
             text-align: center;
-            margin-bottom: 2rem;
-            padding: 1.75rem;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
             color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .clock-section::before {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
-            transform: rotate(30deg);
         }
 
         .clock-section h4 {
-            margin: 0 0 0.5rem 0;
+            margin: 0 0 10px 0;
             opacity: 0.9;
-            font-weight: 500;
-            position: relative;
         }
 
         .clock-section h2 {
             margin: 0;
-            font-size: 3rem;
-            font-weight: 700;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            position: relative;
-            font-feature-settings: "tnum";
-            font-variant-numeric: tabular-nums;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 0.875rem 1.75rem;
+        .btn-absen {
+            padding: 12px 24px;
             border: none;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
-            font-size: 1rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            min-width: 180px;
+            margin-right: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            font-size: 14px;
         }
 
-        .btn-primary {
-            background-color: var(--primary-color);
+        .btn-masuk {
+            background-color: #28a745;
             color: white;
         }
 
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
+        .btn-masuk:hover {
+            background-color: #218838;
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(67, 97, 238, 0.25);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
         }
 
-        .btn-danger {
-            background-color: var(--danger-color);
+        .btn-keluar {
+            background-color: #dc3545;
             color: white;
         }
 
-        .btn-danger:hover {
-            background-color: #db2777;
+        .btn-keluar:hover {
+            background-color: #c82333;
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(247, 37, 133, 0.25);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
         }
 
-        .btn-secondary {
-            background-color: #6c757d;
+        .btn-dev {
+            background-color: #6f42c1;
             color: white;
+            font-size: 12px;
+            padding: 8px 16px;
         }
 
-        .btn-secondary:hover {
-            background-color: #5a6268;
-            transform: translateY(-2px);
+        .btn-dev:hover {
+            background-color: #5a32a3;
         }
 
-        .status-card {
-            background: #fff;
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border-left: 4px solid var(--primary-color);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            transition: var(--transition);
-        }
-
-        .status-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .status-card.complete {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border-left-color: #22c55e;
-            text-align: center;
-        }
-
-        .status-card h5 {
-            margin: 0 0 0.75rem 0;
-            color: var(--dark-color);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .status-card p {
-            margin: 0.5rem 0;
-            font-size: 0.95rem;
-            color: #4a5568;
-        }
-
-        .status-card .time-detail {
-            display: flex;
-            gap: 1.5rem;
-            margin-top: 1rem;
-        }
-
-        .status-card .time-detail div {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 0.75rem;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .status-card .time-detail strong {
-            display: block;
-            color: var(--primary-color);
-            margin-bottom: 0.25rem;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.35rem 0.75rem;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-success {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-
-        .badge-danger {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-
-        .badge-warning {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-
-        .info-box {
+        .status-today {
             background: #f8f9fa;
-            border-radius: var(--border-radius);
-            padding: 1.25rem;
-            margin-bottom: 2rem;
-            border-left: 4px solid var(--info-color);
-            display: flex;
-            gap: 1rem;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
         }
 
-        .info-box .icon {
-            font-size: 1.5rem;
-            color: var(--info-color);
-            flex-shrink: 0;
+        .status-today h5 {
+            margin: 0 0 8px 0;
+            color: #495057;
         }
 
-        .info-box p {
+        .status-today p {
             margin: 0;
-            color: #4a5568;
+            font-size: 14px;
+            color: #6c757d;
         }
 
-        .info-box strong {
-            color: var(--dark-color);
+        .complete-status {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: bold;
         }
 
         table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-top: 2rem;
+            border-collapse: collapse;
+            margin-top: 25px;
             background: white;
-            border-radius: var(--border-radius);
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        th, td {
-            padding: 1rem 1.25rem;
+        th,
+        td {
+            padding: 14px 12px;
             text-align: center;
-            border-bottom: 1px solid #edf2f7;
+            border-bottom: 1px solid #dee2e6;
         }
 
         th {
-            background-color: #f8fafc;
+            background-color: #f8f9fa;
             font-weight: 600;
-            color: #64748b;
+            color: #495057;
             text-transform: uppercase;
-            font-size: 0.75rem;
+            font-size: 12px;
             letter-spacing: 0.5px;
         }
 
-        tr:not(:last-child) td {
-            border-bottom: 1px solid #edf2f7;
+        tr:hover {
+            background-color: #f8f9fa;
         }
 
-        tr:hover td {
-            background-color: #f8fafc;
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-danger {
+            background-color: #dc3545;
+        }
+
+        .bg-success {
+            background-color: #28a745;
+        }
+
+        .bg-warning {
+            background-color: #ffc107;
+            color: #212529;
         }
 
         .late-time {
-            color: var(--danger-color);
-            font-weight: 600;
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 12px;
         }
 
         .on-time {
-            color: #166534;
+            color: #28a745;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .time-late {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .time-normal {
+            color: #28a745;
             font-weight: 500;
         }
 
         .no-data {
             text-align: center;
-            color: #64748b;
-            padding: 3rem;
-            font-size: 0.95rem;
-        }
-
-        .no-data svg {
-            opacity: 0.5;
-            margin-bottom: 1rem;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px;
         }
 
         .dev-tools {
-            background: #f8f0ff;
-            border-radius: var(--border-radius);
-            padding: 1.25rem;
-            margin-bottom: 2rem;
-            border-left: 4px solid #8b5cf6;
+            background: #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #6f42c1;
         }
 
         .dev-tools h6 {
-            margin: 0 0 1rem 0;
-            color: #7c3aed;
+            margin: 0 0 10px 0;
+            color: #6f42c1;
             font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
-        .dev-tools .tools {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
+        .working-hours {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        /* Tambahan untuk debug */
+        .debug-info {
+            background: #f8f9fa;
+            border: 2px solid #6c757d;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #495057;
         }
 
         @media (max-width: 768px) {
             .absensi-container {
-                margin: 1rem;
-                padding: 1.5rem;
-            }
-
-            .clock-section h2 {
-                font-size: 2rem;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-
-            .status-card .time-detail {
-                flex-direction: column;
-                gap: 0.75rem;
+                margin: 10px;
+                padding: 20px;
             }
 
             table {
-                font-size: 0.85rem;
+                font-size: 12px;
             }
 
-            th, td {
-                padding: 0.75rem 0.5rem;
+            th,
+            td {
+                padding: 8px 6px;
             }
-        }
 
-        /* Animation */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .absensi-container > * {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(67, 97, 238, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+            .btn-absen {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
         }
     </style>
 
     <div class="absensi-container">
-        <h1>
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-            </svg>
-            Sistem Presensi Karyawan
-        </h1>
+        <h1>📋 Sistem Presensi Karyawan</h1>
 
         {{-- Notifikasi --}}
         @if (session('success'))
-            <div class="alert alert-success">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                {{ session('success') }}
+            <div class="alert-success">
+                ✅ {{ session('success') }}
             </div>
         @endif
 
         @if (session('error'))
-            <div class="alert alert-error">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                {{ session('error') }}
+            <div class="alert-error">
+                ❌ {{ session('error') }}
             </div>
         @endif
 
@@ -428,79 +297,59 @@
             $jamBatas = '08:30:00';
         @endphp
 
+        {{-- Debug Info (hanya tampil di environment local) --}}
+        {{-- @if (app()->environment('local'))
+            <div class="debug-info">
+                <strong>🐛 Debug Info:</strong><br>
+                Tanggal hari ini: {{ \Carbon\Carbon::now()->toDateString() }}<br>
+                Absen hari ini ada: {{ $absenHariIni ? 'Ya' : 'Tidak' }}<br>
+                @if ($absenHariIni)
+                    Jam masuk: {{ $absenHariIni->jam ?? 'null' }}<br>
+                    Jam keluar: {{ $absenHariIni->jam_keluar ?? 'null' }}<br>
+                    Status: {{ $absenHariIni->status ?? 'null' }}
+                @endif
+            </div>
+        @endif --}}
+
         {{-- Jam realtime --}}
         <div class="clock-section">
             <h4 id="tanggal-hari-ini"></h4>
-            <h4>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                Waktu Sekarang
-            </h4>
+            <h4>⏰ Waktu Sekarang</h4>
             <h2 id="clock"></h2>
         </div>
 
         {{-- Info jam kerja --}}
-        <div class="info-box">
-            <div class="icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M12 8v4l3 3"></path>
-                </svg>
-            </div>
-            <p>
-                <strong>Informasi Jam Kerja:</strong> Absen masuk sebelum <strong>{{ \Carbon\Carbon::parse($jamBatas)->format('H:i') }}</strong> dianggap tepat waktu. Keterlambatan akan dicatat secara otomatis. Jam kerja normal adalah 08:00 - 17:00 dengan istirahat 12:00 - 13:00.
-            </p>
+        <div class="working-hours">
+            <strong>ℹ️ Informasi:</strong> Jam masuk kerja adalah sebelum
+            <strong>{{ \Carbon\Carbon::parse($jamBatas)->format('H:i') }}</strong>.
+            Keterlambatan akan dicatat secara otomatis.
         </div>
 
         {{-- Status absensi hari ini --}}
         @if ($absenHariIni)
             @if ($absenHariIni->jam_keluar)
                 {{-- Jika sudah absen masuk dan keluar --}}
-                <div class="status-card complete">
-                    <h5>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                        Absensi Hari Ini Lengkap
-                    </h5>
-                    <div class="time-detail">
-                        <div>
-                            <strong>Jam Masuk</strong>
-                            <span>{{ \Carbon\Carbon::parse($absenHariIni->jam)->format('H:i:s') }}</span>
-                            @if ($absenHariIni->status === 'terlambat')
-                                <div class="badge badge-danger mt-1">Terlambat</div>
-                            @else
-                                <div class="badge badge-success mt-1">Tepat Waktu</div>
-                            @endif
-                        </div>
-                        <div>
-                            <strong>Jam Keluar</strong>
-                            <span>{{ \Carbon\Carbon::parse($absenHariIni->jam_keluar)->format('H:i:s') }}</span>
-                        </div>
-                    </div>
+                <div class="complete-status">
+                    ✅ Anda sudah menyelesaikan absensi hari ini
+                    <br>
+                    <small>
+                        Masuk: {{ \Carbon\Carbon::parse($absenHariIni->jam)->format('H:i:s') }} |
+                        Keluar: {{ \Carbon\Carbon::parse($absenHariIni->jam_keluar)->format('H:i:s') }}
+                    </small>
                 </div>
             @else
                 {{-- Jika sudah absen masuk tapi belum keluar --}}
-                <div class="status-card">
-                    <h5>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        Status Absensi Hari Ini
-                    </h5>
-                    <p><strong>Masuk:</strong> {{ \Carbon\Carbon::parse($absenHariIni->jam)->format('H:i:s') }}</p>
-                    <p><strong>Status:</strong>
+                <div class="status-today">
+                    <h5>📅 Status Absensi Hari Ini</h5>
+                    <p>
+                        <strong>Masuk:</strong> {{ \Carbon\Carbon::parse($absenHariIni->jam)->format('H:i:s') }}
                         @if ($absenHariIni->status === 'terlambat')
-                            <span class="badge badge-danger">Terlambat</span>
+                            <span class="badge bg-danger">Terlambat</span>
                         @else
-                            <span class="badge badge-success">Tepat Waktu</span>
+                            <span class="badge bg-success">Tepat Waktu</span>
                         @endif
                     </p>
-                    <p><strong>Keluar:</strong> <em>Belum melakukan absen keluar</em></p>
+                    <p><strong>Keluar:</strong> <em>Belum absen keluar</em></p>
                 </div>
             @endif
         @endif
@@ -508,40 +357,16 @@
         {{-- Development Tools (hanya tampil di environment local) --}}
         @if (app()->environment('local'))
             <div class="dev-tools">
-                <h6>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-                    </svg>
-                    Development Tools
-                </h6>
-                <div class="tools">
-                    @if ($absenHariIni)
-                        <form method="POST" action="{{ route('absensi.reset') }}" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-secondary" onclick="return confirm('Reset data absensi hari ini?')">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="1 4 1 10 7 10"></polyline>
-                                    <polyline points="23 20 23 14 17 14"></polyline>
-                                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
-                                </svg>
-                                Reset Hari Ini
-                            </button>
-                        </form>
-                    @endif
-                    <a href="{{ route('karyawan.absensi.check-ip') }}" target="_blank" class="btn btn-secondary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <circle cx="12" cy="12" r="4"></circle>
-                            <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
-                            <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line>
-                            <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line>
-                            <line x1="14.83" y1="9.17" x2="18.36" y2="5.64"></line>
-                            <line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line>
-                        </svg>
-                        Cek IP
-                    </a>
-                </div>
+                <h6>🔧 Development Tools</h6>
+                @if ($absenHariIni)
+                    <form method="POST" action="{{ route('absensi.reset') }}" style="display:inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn-absen btn-dev"
+                            onclick="return confirm('Reset data absensi hari ini?')">Reset Hari Ini</button>
+                    </form>
+                @endif
+                <a href="{{ route('karyawan.absensi.check-ip') }}" target="_blank" class="btn-absen btn-dev">Cek IP</a>
             </div>
         @endif
 
@@ -552,93 +377,58 @@
                 return \Carbon\Carbon::parse($absen->tanggal)->format('Y-m-d') === $today;
             });
         @endphp
-
-        <div class="action-buttons">
+        <div style="margin-bottom: 25px; text-align: center;">
             @if (!$absenHariIni)
                 {{-- Belum absen masuk sama sekali --}}
+                <p style="margin-bottom: 15px; color: #495057; font-weight: 500;">
+                    🚪 Silakan lakukan absen masuk
+                </p>
                 <form method="POST" action="{{ route('absensi.store') }}" style="display:inline;">
                     @csrf
-                    <button type="submit" class="btn btn-primary pulse">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                        Absen Masuk
+                    <button type="submit" class="btn-absen btn-masuk">
+                        🚪 Waktu Masuk
                     </button>
                 </form>
             @elseif (is_null($absenHariIni->jam_keluar))
                 {{-- Sudah absen masuk tapi belum keluar --}}
+                <p style="margin-bottom: 15px; color: #495057; font-weight: 500;">
+                    🏠 Anda sudah absen masuk, silakan absen keluar
+                </p>
                 <form method="POST" action="{{ route('absensi.keluar') }}" style="display:inline;">
                     @csrf
-                    <button type="submit" class="btn btn-danger">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M10 3H6a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4M16 17l5-5-5-5M19.8 12H9"></path>
-                        </svg>
-                        Absen Keluar
+                    <button type="submit" class="btn-absen btn-keluar">
+                        🏠 Waktu Pulang
                     </button>
                 </form>
             @else
                 {{-- Sudah absen masuk dan keluar --}}
-                <button class="btn btn-secondary" disabled>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                    Absensi Hari Ini Selesai
-                </button>
+                <p style="margin-bottom: 15px; color: #28a745; font-weight: 500;">
+                    ✅ Absensi hari ini sudah lengkap
+                </p>
             @endif
         </div>
-
         {{-- Tabel Riwayat --}}
         <table>
             <thead>
                 <tr>
-                    <th>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
-                        Tanggal
-                    </th>
-                    <th>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        Jam Masuk
-                    </th>
-                    <th>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        Jam Keluar
-                    </th>
-                    <th>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path>
-                            <path d="M8.5 8.5v.01"></path>
-                            <path d="M16 15.5v.01"></path>
-                            <path d="M12 12v.01"></path>
-                            <path d="M11 17v.01"></path>
-                            <path d="M7 14v.01"></path>
-                        </svg>
-                        Status
-                    </th>
-                    <th>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M12 8v4l3 3"></path>
-                        </svg>
-                        Keterlambatan
-                    </th>
+                    <th>📅 Tanggal</th>
+                    <th>🕐 Waktu Masuk</th>
+                    <th>📊 Status</th>
+                    <th>🕔 Waktu Pulang</th>
+                    <th>⏱️ Keterangan</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($absensi as $item)
                     @php
+                        // Perbaikan logika keterlambatan di view
+                        $tanggal = \Carbon\Carbon::parse($item->tanggal)->toDateString();
+                        $jamMasuk = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $tanggal . ' ' . $item->jam);
+                        $jamBatas = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $tanggal . ' ' . '08:30:00');
+                        $isTerlambat = $jamMasuk->gt($jamBatas);
+
                         $jamBatas = '08:30:00';
+
                         $jamBatasCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $jamBatas);
                         $jamMasukCarbon = \Carbon\Carbon::createFromFormat('H:i:s', $item->jam);
                         $isTerlambat = $jamMasukCarbon->gt($jamBatasCarbon);
@@ -654,26 +444,27 @@
                             }
                         }
 
+                        // Gunakan status dari database jika ada, atau hitung ulang
                         $statusFromDB = $item->status ?? ($isTerlambat ? 'terlambat' : 'hadir');
                     @endphp
 
                     <tr>
                         <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y') }}</td>
-                        <td class="{{ $isTerlambat ? 'late-time' : 'on-time' }}">
+                        <td class="{{ $isTerlambat ? 'time-late' : 'time-normal' }}">
                             {{ \Carbon\Carbon::parse($item->jam)->format('H:i:s') }}
+                        </td>
+                        <td>
+                            @if ($statusFromDB === 'terlambat')
+                                <span class="badge bg-danger">Terlambat</span>
+                            @else
+                                <span class="badge bg-success">Hadir</span>
+                            @endif
                         </td>
                         <td>
                             @if ($item->jam_keluar)
                                 {{ \Carbon\Carbon::parse($item->jam_keluar)->format('H:i:s') }}
                             @else
-                                <span style="color:#94a3b8; font-style: italic;">-</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if ($statusFromDB === 'terlambat')
-                                <span class="badge badge-danger">Terlambat</span>
-                            @else
-                                <span class="badge badge-success">Hadir</span>
+                                <span style="color:#6c757d; font-style: italic;">Belum keluar</span>
                             @endif
                         </td>
                         <td>
@@ -687,10 +478,7 @@
                 @empty
                     <tr>
                         <td colspan="5" class="no-data">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                            </svg>
-                            <div>Belum ada data absensi</div>
+                            📝 Belum ada data absensi
                         </td>
                     </tr>
                 @endforelse
@@ -729,7 +517,7 @@
 
         // Konfirmasi sebelum absen keluar
         document.addEventListener('DOMContentLoaded', function() {
-            const keluarBtn = document.querySelector('button[type="submit"].btn-danger');
+            const keluarBtn = document.querySelector('button[type="submit"].btn-keluar');
             if (keluarBtn) {
                 keluarBtn.addEventListener('click', function(e) {
                     if (!confirm('Apakah Anda yakin ingin melakukan absen keluar?')) {
